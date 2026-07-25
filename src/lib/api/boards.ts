@@ -1,4 +1,4 @@
-import type { Board } from "@/types/domain";
+import type { Board, BoardColumn } from "@/types/domain";
 import type {
   CreateBoardInput,
   UpdateBoardInput,

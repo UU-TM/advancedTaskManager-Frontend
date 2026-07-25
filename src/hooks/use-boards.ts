@@ -10,6 +10,14 @@ export const boardKeys = {
     [...boardKeys.all, "workspace", workspaceId] as const,
 };
 
+export function useBoard(boardId: string | undefined) {
+  return useQuery({
+    queryKey: ["board", boardId ?? ""] as const,
+    queryFn: () => boardsApi.get(boardId!),
+    enabled: !!boardId,
+  });
+}
+
 export function useBoards(workspaceId: string | undefined) {
   return useQuery({
     queryKey: boardKeys.byWorkspace(workspaceId ?? ""),
