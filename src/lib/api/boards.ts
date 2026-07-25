@@ -11,6 +11,7 @@ import { apiFetch } from "./client";
  * ----------------------------------------------------
  * Create nests under the workspace: POST /workspaces/:id/boards.
  * List: GET /workspaces/:id/boards.
+ * List columns in a board: /boards/:id/columns
  */
 
 export const boardsApi = {
@@ -45,5 +46,9 @@ export const boardsApi = {
       method: "POST",
       body: JSON.stringify({ title: input.name }),
     });
+  },
+
+  async listColumns(boardId: string): Promise<BoardColumn[]> {
+    return apiFetch<BoardColumn[]>(`/boards/${boardId}/columns`);
   },
 };

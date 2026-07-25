@@ -51,4 +51,8 @@ export const cardsApi = {
       method: "DELETE",
     });
   },
+
+  async listByColumn(columnId: string): Promise<Card[]> {
+    return apiFetch<Card[]>(`/cards?columnId=${columnId}`);
+  },
 };
