@@ -1,15 +1,15 @@
 import { z } from "zod";
 
 /**
- * Workspace validators
+ * Workspace validators — aligned with backend CreateWorkspaceDto.
  */
 
 export const createWorkspaceSchema = z.object({
   name: z
     .string()
-    .min(2, "Workspace name must be at least 2 characters")
+    .trim()
+    .min(1, "Name is required")
     .max(64, "Workspace name is too long"),
-  description: z.string().max(500).optional(),
 });
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial();

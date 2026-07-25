@@ -1,16 +1,8 @@
 import { z } from "zod";
 
 /**
- * Auth validators
- * ----------------------------------------------------
- * Aligned with the backend auth DTOs. Adjust the regex
- * rules to match whatever the backend enforces.
+ * Auth validators — aligned with backend LoginDto / RegisterDto.
  */
-
-export const emailSchema = z
-  .string()
-  .min(1, "Email is required")
-  .email("Enter a valid email address");
 
 export const passwordSchema = z
   .string()
@@ -27,14 +19,13 @@ export const usernameSchema = z
   );
 
 export const loginSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+  username: usernameSchema,
+  password: z.string().min(1, "Password is required"),
 });
 
 export const registerSchema = z
   .object({
     username: usernameSchema,
-    email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string(),
   })

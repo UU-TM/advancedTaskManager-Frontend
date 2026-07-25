@@ -1,23 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_BASE_URL } from "@/lib/api/client";
-import {
-  REFRESH_COOKIE_MAX_AGE,
-  REFRESH_COOKIE_NAME,
-} from "@/lib/auth/config";
+import { refreshCookieOptions, REFRESH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 /**
  * Refresh route handler
  * ----------------------------------------------------
- * Forwards the httpOnly refresh cookie to the backend
- * `/auth/refresh` endpoint and returns the new access
- * token to the client as JSON. The refresh cookie is
- * rotated server-side (Set-Cookie in the response) and
- * never exposed to client-side JS.
- *
- * This is the ONLY endpoint that touches the refresh
- * token. The client's `authApi.refresh()` helper calls
- * this route (relative URL) so the cookie rides along
- * automatically.
+ * Reads the httpOnly refresh cookie and posts it to the
+ * backend as `{ refreshToken }` (JwtRefreshStrategy
+ * extracts from the body). Returns a new access token
+ * and rotates the cookie when the backend issues one.
  */
 
 interface BackendRefreshEnvelope {
@@ -29,47 +20,55 @@ interface BackendRefreshEnvelope {
   };
 }
 
-export async function POST(_req: NextRequest) {
-  const cookieHeader = _req.headers.get("cookie") ?? "";
+export async function POST(req: NextRequest) {
+  const refreshToken = req.cookies.get(REFRESH_COOKIE_NAME)?.value;
+
+  if (!refreshToken) {
+    return NextResponse.json(
+      { message: "No refresh token", status: 401, data: null },
+      { status: 401 },
+    );
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: cookieHeader,
-      },
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
       cache: "no-store",
     });
 
     if (!res.ok) {
-      return NextResponse.json(
-        { message: "Refresh failed", status: res.status },
+      const next = NextResponse.json(
+        { message: "Refresh failed", status: res.status, data: null },
         { status: res.status },
       );
+      next.cookies.set(REFRESH_COOKIE_NAME, "", refreshCookieOptions(0));
+      return next;
     }
 
     const envelope = (await res.json()) as BackendRefreshEnvelope;
-    const next = NextResponse.json(
-      { accessToken: envelope.data.accessToken },
+    const response = NextResponse.json(
+      {
+        message: envelope.message,
+        status: 200,
+        data: { accessToken: envelope.data.accessToken },
+      },
       { status: 200 },
     );
 
-    // If the backend rotated the refresh token, propagate the new cookie.
-    const setCookie = res.headers.get("set-cookie");
-    if (setCookie) {
-      next.headers.set("set-cookie", setCookie);
-    } else if (envelope.data.refreshToken) {
-      next.headers.append(
-        "set-cookie",
-        `${REFRESH_COOKIE_NAME}=${envelope.data.refreshToken}; HttpOnly; Path=/; Max-Age=${REFRESH_COOKIE_MAX_AGE}; SameSite=Lax; Secure`,
+    if (envelope.data.refreshToken) {
+      response.cookies.set(
+        REFRESH_COOKIE_NAME,
+        envelope.data.refreshToken,
+        refreshCookieOptions(),
       );
     }
 
-    return next;
+    return response;
   } catch {
     return NextResponse.json(
-      { message: "Network error during refresh", status: 502 },
+      { message: "Network error during refresh", status: 502, data: null },
       { status: 502 },
     );
   }

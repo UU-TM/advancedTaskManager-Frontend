@@ -5,17 +5,15 @@ import { apiFetch } from "./client";
 /**
  * Workspaces API module
  * ----------------------------------------------------
- * `list` depends on `GET /workspaces` which the backend
- * has not shipped yet — see the coordination checklist
- * in the README. The signature is final; only the URL
- * may need adjusting once the route is implemented.
+ * List: GET /workspaces (membership-scoped).
+ * Create: POST /workspaces with `{ name }`.
  */
 
 export const workspacesApi = {
   async create(input: CreateWorkspaceInput): Promise<Workspace> {
     return apiFetch<Workspace>("/workspaces", {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify({ name: input.name }),
     });
   },
 

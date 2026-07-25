@@ -7,11 +7,12 @@
 
 export interface User {
   id: string;
-  email: string;
   username: string;
+  /** Optional — not currently returned by the backend PublicUser DTO. */
+  email?: string;
   displayName?: string;
   avatarUrl?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface AuthTokens {
@@ -28,12 +29,13 @@ export interface AuthSession {
 export interface Workspace {
   id: string;
   name: string;
-  slug: string;
-  description?: string;
   ownerId: string;
-  memberCount: number;
   createdAt: string;
   updatedAt: string;
+  /** Optional — not returned by current backend Workspace DTO. */
+  slug?: string;
+  description?: string;
+  memberCount?: number;
 }
 
 export interface BoardColumn {
@@ -69,12 +71,13 @@ export interface Board {
   id: string;
   workspaceId: string;
   name: string;
-  slug: string;
-  description?: string;
-  columns: BoardColumn[];
-  cards: Card[];
   createdAt: string;
   updatedAt: string;
+  /** Optional — not returned by current backend Board DTO. */
+  slug?: string;
+  description?: string;
+  columns?: BoardColumn[];
+  cards?: Card[];
 }
 
 /** Shape used by the card-move endpoint. */

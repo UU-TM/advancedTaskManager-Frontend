@@ -1,4 +1,4 @@
-import type { ApiEnvelope } from "@/types/api";
+import type { ApiEnvelope, ApiErrorPayload } from "@/types/api";
 import { ApiError, SessionExpiredError } from "./errors";
 
 /** Function used to refresh the access token on 401. Set by the auth module. */
