@@ -40,7 +40,8 @@ export interface Workspace {
 
 export interface BoardColumn {
   id: string;
-  name: string;
+  boardId: string;
+  title: string;
   position: number;
   color?: string;
 }
