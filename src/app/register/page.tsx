@@ -5,29 +5,29 @@ import { Loader2 } from "lucide-react";
 import {
   AuthShell,
   GuestOnly,
-  LoginForm,
+  RegisterForm,
 } from "@/components/features/auth";
 
-function LoginContent() {
+function RegisterContent() {
   return (
     <GuestOnly>
       <AuthShell
-        title="Sign in"
-        description="Welcome back. Enter your credentials to continue."
+        title="Create account"
+        description="Pick a username and password to get started."
       >
-        <LoginForm />
+        <RegisterForm />
       </AuthShell>
     </GuestOnly>
   );
 }
 
 /**
- * Login page
+ * Register page
  * ----------------------------------------------------
- * Guest-only. On success, AuthProvider holds the access
- * token in memory and we redirect to `next` (default /boards).
+ * Guest-only. On success, register auto-logs in and we
+ * redirect to the post-auth home (/boards).
  */
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense
       fallback={
@@ -36,7 +36,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <LoginContent />
+      <RegisterContent />
     </Suspense>
   );
 }

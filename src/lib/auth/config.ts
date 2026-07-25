@@ -23,7 +23,8 @@ export const PUBLIC_PREFIXES = [
 ] as const;
 
 export const LOGIN_ROUTE = "/login";
-export const HOME_ROUTE = "/";
+/** Post-auth landing (and guest-redirect target). */
+export const HOME_ROUTE = "/boards";
 
 /** Cookie name used by the refresh route handler. */
 export const REFRESH_COOKIE_NAME = "kanban.refresh-token";

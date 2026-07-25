@@ -5,6 +5,7 @@ export {
   REFRESH_COOKIE_MAX_AGE,
 } from "./context";
 export { authStorage } from "./storage";
+export { getJwtExpiryMs } from "./jwt";
 export {
   PROTECTED_PREFIXES,
   PUBLIC_PREFIXES,

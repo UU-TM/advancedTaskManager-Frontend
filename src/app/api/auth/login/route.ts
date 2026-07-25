@@ -1,31 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_BASE_URL } from "@/lib/api/client";
-import {
-  REFRESH_COOKIE_MAX_AGE,
-  REFRESH_COOKIE_NAME,
-} from "@/lib/auth/config";
+import { refreshCookieOptions, REFRESH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 /**
  * Login route handler (proxy)
  * ----------------------------------------------------
- * Forwards the login payload to the backend and, on
- * success, plants the refresh token in an httpOnly
- * cookie. Only the access token (short-lived) is
- * returned to the client as JSON.
+ * Forwards credentials to the backend and plants the
+ * refresh token in an httpOnly cookie. Only the access
+ * token is returned to the client.
  *
- * The client AuthProvider then loads the access token
- * into memory and uses it for subsequent API calls.
+ * Backend login payload: `{ username, password }`
+ * Backend data shape: `{ accessToken, refreshToken, user }`
  */
 
 interface BackendLoginEnvelope {
   message: string;
   status: number;
   data: {
-    user: unknown;
-    tokens: {
-      accessToken: string;
-      refreshToken?: string;
-    };
+    accessToken: string;
+    refreshToken: string;
+    user: { id: string; username: string };
   };
 }
 
@@ -51,36 +45,42 @@ export async function POST(req: NextRequest) {
     const text = await res.text();
     const envelope = text ? (JSON.parse(text) as BackendLoginEnvelope) : null;
 
-    if (!res.ok || !envelope) {
+    if (!res.ok || !envelope?.data) {
       return NextResponse.json(
-        { message: envelope?.message ?? "Login failed", status: res.status },
+        {
+          message: envelope?.message ?? "Login failed",
+          status: res.status,
+          data: null,
+        },
         { status: res.status },
       );
     }
 
-    const { accessToken, refreshToken } = envelope.data.tokens;
+    const { accessToken, refreshToken, user } = envelope.data;
     const response = NextResponse.json(
       {
-        user: envelope.data.user,
-        tokens: { accessToken },
+        message: envelope.message,
+        status: 200,
+        data: {
+          user,
+          tokens: { accessToken },
+        },
       },
       { status: 200 },
     );
 
     if (refreshToken) {
-      response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {
-        httpOnly: true,
-        path: "/",
-        maxAge: REFRESH_COOKIE_MAX_AGE,
-        sameSite: "lax",
-        secure: true,
-      });
+      response.cookies.set(
+        REFRESH_COOKIE_NAME,
+        refreshToken,
+        refreshCookieOptions(),
+      );
     }
 
     return response;
   } catch {
     return NextResponse.json(
-      { message: "Network error during login", status: 502 },
+      { message: "Network error during login", status: 502, data: null },
       { status: 502 },
     );
   }

@@ -5,14 +5,10 @@ import { apiFetch } from "./client";
 /**
  * Auth API module
  * ----------------------------------------------------
- * Endpoints are stubs that match the conventions in the
- * task brief. Adjust the URL paths to the actual backend
- * routes once they are finalized.
- *
- * The refresh + logout calls hit our own Next.js route
- * handlers (under `/api/auth/*`) which proxy to the
- * backend so the refresh token stays in an httpOnly
- * cookie and never reaches client-side JS.
+ * Login / refresh / logout go through Next.js route
+ * handlers so the refresh token stays in an httpOnly
+ * cookie. Register hits the backend directly, then
+ * signs in (backend register returns a user, not tokens).
  */
 
 export type LoginResponse = AuthSession;
@@ -20,26 +16,34 @@ export type RegisterResponse = AuthSession;
 
 export const authApi = {
   async login(input: LoginInput): Promise<LoginResponse> {
-    return apiFetch<LoginResponse>("/auth/login", {
+    return apiFetch<LoginResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(input),
       skipAuth: true,
+      relative: true,
     });
   },
 
   async register(input: RegisterInput): Promise<RegisterResponse> {
-    return apiFetch<RegisterResponse>("/auth/register", {
+    await apiFetch<User>("/auth/register", {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        username: input.username,
+        password: input.password,
+      }),
       skipAuth: true,
+    });
+
+    // Backend register returns the public user only — sign in next.
+    return this.login({
+      username: input.username,
+      password: input.password,
     });
   },
 
   /**
-   * Refresh the access token. Calls our OWN route handler (relative URL)
-   * so the httpOnly refresh cookie is sent automatically by the browser.
-   * Returns a new access token — the refresh cookie is rotated server-side
-   * and never exposed to JS.
+   * Refresh the access token via our route handler so the
+   * httpOnly refresh cookie is sent automatically.
    */
   async refresh(): Promise<{ accessToken: string } | null> {
     try {
@@ -56,14 +60,13 @@ export const authApi = {
 
   async logout(): Promise<void> {
     try {
-      await apiFetch<void>("/api/auth/logout", {
+      await apiFetch<{ ok: boolean }>("/api/auth/logout", {
         method: "POST",
         skipRefresh: true,
         relative: true,
       });
     } catch {
-      // Even if the network call fails, the client has cleared its
-      // in-memory token; the route handler already cleared the cookie.
+      // Client still clears its in-memory token.
     }
   },
 

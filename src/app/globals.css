@@ -57,11 +57,11 @@
   --radius: 0.625rem;
 
   /* Surfaces */
-  --background: #fffbbe; /* warm cream */
+  --background: #fffbeb; /* warm cream */
   --foreground: #1f1f1f; /* near-black */
   --card: #efeddc; /* warmer card surface */
   --card-foreground: #1f1f1f;
-  --popover: #fffbbe;
+  --popover: #fffbeb;
   --popover-foreground: #1f1f1f;
 
   /* Brand accents */

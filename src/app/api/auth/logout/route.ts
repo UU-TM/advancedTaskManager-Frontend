@@ -1,36 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_BASE_URL } from "@/lib/api/client";
-import { REFRESH_COOKIE_NAME } from "@/lib/auth/config";
+import { refreshCookieOptions, REFRESH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 /**
  * Logout route handler
  * ----------------------------------------------------
- * Calls the backend `/auth/logout` endpoint (forwarding
- * the refresh cookie so it can be invalidated server-side)
- * and then clears the refresh cookie on the response.
+ * Forwards the Bearer access token to the backend so it
+ * can invalidate the stored refresh hash, then clears
+ * the local refresh cookie.
  */
 
 export async function POST(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") ?? "";
+  const authorization = req.headers.get("authorization");
 
   try {
-    // Best-effort: ignore backend errors so the client always signs out.
     await fetch(`${API_BASE_URL}/auth/logout`, {
       method: "POST",
-      headers: { cookie: cookieHeader },
+      headers: {
+        ...(authorization ? { Authorization: authorization } : {}),
+      },
       cache: "no-store",
     });
   } catch {
-    // ignore — we still clear the cookie locally
+    // Best-effort — still clear the cookie locally.
   }
 
-  const res = NextResponse.json({ ok: true }, { status: 200 });
-  res.cookies.set(REFRESH_COOKIE_NAME, "", {
-    httpOnly: true,
-    path: "/",
-    maxAge: 0,
-    sameSite: "lax",
-    secure: true,
-  });
+  const res = NextResponse.json(
+    { message: "Logged out", status: 200, data: { ok: true } },
+    { status: 200 },
+  );
+  res.cookies.set(REFRESH_COOKIE_NAME, "", refreshCookieOptions(0));
   return res;
 }

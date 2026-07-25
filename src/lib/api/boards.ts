@@ -9,15 +9,15 @@ import { apiFetch } from "./client";
 /**
  * Boards API module
  * ----------------------------------------------------
- * `listByWorkspace` and `get` wait on backend routes
- * documented in the README coordination checklist.
+ * Create nests under the workspace: POST /workspaces/:id/boards.
+ * List: GET /workspaces/:id/boards.
  */
 
 export const boardsApi = {
   async create(input: CreateBoardInput): Promise<Board> {
-    return apiFetch<Board>("/boards", {
+    return apiFetch<Board>(`/workspaces/${input.workspaceId}/boards`, {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify({ name: input.name }),
     });
   },
 
@@ -43,7 +43,7 @@ export const boardsApi = {
   async addColumn(input: CreateColumnInput): Promise<Board> {
     return apiFetch<Board>(`/boards/${input.boardId}/columns`, {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify({ title: input.name }),
     });
   },
 };

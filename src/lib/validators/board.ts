@@ -1,23 +1,31 @@
 import { z } from "zod";
 
 /**
- * Board validators
+ * Board validators — aligned with backend CreateBoardDto
+ * (name only on the wire; workspaceId is a path param).
  */
 
 export const createBoardSchema = z.object({
-  workspaceId: z.string().min(1, "Workspace ID is required"),
+  workspaceId: z.string().uuid("Workspace ID is required"),
   name: z
     .string()
-    .min(2, "Board name must be at least 2 characters")
+    .trim()
+    .min(1, "Name is required")
     .max(64, "Board name is too long"),
-  description: z.string().max(500).optional(),
 });
 
-export const updateBoardSchema = createBoardSchema.partial();
+export const updateBoardSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(64, "Board name is too long")
+    .optional(),
+});
 
 export const createColumnSchema = z.object({
-  boardId: z.string().min(1),
-  name: z.string().min(1).max(40),
+  boardId: z.string().uuid(),
+  name: z.string().trim().min(1).max(40),
   position: z.number().int().min(0).optional(),
   color: z
     .string()

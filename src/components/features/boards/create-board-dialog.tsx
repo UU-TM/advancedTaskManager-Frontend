@@ -1,0 +1,138 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2, Plus } from "lucide-react";
+import { useCreateBoard } from "@/hooks/use-boards";
+import { ApiError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const formSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(64, "Board name is too long"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface CreateBoardDialogProps {
+  workspaceId: string;
+}
+
+export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const createBoard = useCreateBoard();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "" },
+  });
+
+  async function onSubmit(values: FormValues) {
+    setServerError(null);
+    try {
+      await createBoard.mutateAsync({
+        workspaceId,
+        name: values.name,
+      });
+      reset();
+      setOpen(false);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setServerError(err.message);
+      } else {
+        setServerError("Could not create board. Please try again.");
+      }
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setServerError(null);
+          reset();
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Plus className="mr-2 size-4" />
+          Create New Board
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogHeader>
+            <DialogTitle>Create board</DialogTitle>
+            <DialogDescription>
+              Give your board a name. You can add columns and cards next.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {serverError && (
+              <Alert variant="destructive">
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="board-name">Name</Label>
+              <Input
+                id="board-name"
+                placeholder="Sprint planning"
+                autoComplete="off"
+                aria-invalid={!!errors.name}
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={isSubmitting || createBoard.isPending}
+              className="w-full sm:w-auto"
+            >
+              {isSubmitting || createBoard.isPending ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Creating…
+                </>
+              ) : (
+                "Create board"
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
