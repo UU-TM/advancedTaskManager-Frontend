@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { Loader2, Lock, LogIn, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { loginSchema, type LoginInput } from "@/lib/validators";
+import {
+  createLoginSchema,
+  type LoginInput,
+} from "@/lib/validators";
 import { ApiError } from "@/lib/api";
 import { HOME_ROUTE } from "@/lib/auth/config";
 import { Button } from "@/components/ui/button";
@@ -18,18 +22,26 @@ import { AuthField } from "./auth-field";
  * Login form — react-hook-form + Zod, wired to `useAuth().login`.
  */
 export function LoginForm() {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tVal = useTranslations("validators");
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") ?? HOME_ROUTE;
   const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const schema = useMemo(
+    () => createLoginSchema((key) => tVal(key as "passwordRequired")),
+    [tVal],
+  );
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
     defaultValues: { username: "", password: "" },
   });
 
@@ -42,7 +54,7 @@ export function LoginForm() {
       if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
-        setServerError("Something went wrong. Please try again.");
+        setServerError(tCommon("tryAgain"));
       }
     }
   }
@@ -51,25 +63,25 @@ export function LoginForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {serverError && (
         <Alert variant="destructive">
-          <AlertTitle>Could not sign in</AlertTitle>
+          <AlertTitle>{t("couldNotSignIn")}</AlertTitle>
           <AlertDescription>{serverError}</AlertDescription>
         </Alert>
       )}
 
       <AuthField
         id="username"
-        label="Username"
+        label={t("username")}
         icon={User}
         type="text"
         autoComplete="username"
-        placeholder="yourname"
+        placeholder={t("usernamePlaceholder")}
         error={errors.username?.message}
         {...register("username")}
       />
 
       <AuthField
         id="password"
-        label="Password"
+        label={t("password")}
         icon={Lock}
         type="password"
         autoComplete="current-password"
@@ -81,7 +93,7 @@ export function LoginForm() {
             className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             onClick={(e) => e.preventDefault()}
           >
-            Forgot password?
+            {t("forgotPassword")}
           </a>
         }
         {...register("password")}
@@ -90,21 +102,21 @@ export function LoginForm() {
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Signing in…
+            <Loader2 className="me-2 size-4 animate-spin" />
+            {t("signingIn")}
           </>
         ) : (
           <>
-            <LogIn className="mr-2 size-4" />
-            Sign in
+            <LogIn className="me-2 size-4" />
+            {t("signIn")}
           </>
         )}
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
-        No account yet?{" "}
+        {t("noAccountYet")}{" "}
         <Link href="/register" className="text-foreground underline">
-          Create one
+          {t("createOne")}
         </Link>
       </p>
     </form>

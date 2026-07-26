@@ -1,14 +1,10 @@
 /**
- * Domain entities
- * ----------------------------------------------------
- * These describe the resource shapes used across the app.
- * Keep them in sync with the Zod validators in `lib/validators`.
+ * Domain entities — aligned with Nest/Prisma backend responses.
  */
 
 export interface User {
   id: string;
   username: string;
-  /** Optional — not currently returned by the backend PublicUser DTO. */
   email?: string;
   displayName?: string;
   avatarUrl?: string;
@@ -17,7 +13,6 @@ export interface User {
 
 export interface AuthTokens {
   accessToken: string;
-  /** Optional — only present when the backend rotates the refresh token. */
   refreshToken?: string;
 }
 
@@ -32,18 +27,23 @@ export interface Workspace {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
-  /** Optional — not returned by current backend Workspace DTO. */
   slug?: string;
   description?: string;
   memberCount?: number;
 }
+
+export type CardPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type BoardRole = "VIEWER" | "EDITOR";
 
 export interface BoardColumn {
   id: string;
   boardId: string;
   title: string;
   position: number;
-  color?: string;
+  archivedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  cards?: Card[];
 }
 
 export interface CardAssignee {
@@ -53,19 +53,38 @@ export interface CardAssignee {
   avatarUrl?: string;
 }
 
-export interface Card {
+export interface Label {
   id: string;
   boardId: string;
+  name: string;
+  color: string;
+}
+
+export interface CardCounts {
+  comments: number;
+  attachments: number;
+  checklists: number;
+}
+
+export interface Card {
+  id: string;
   columnId: string;
   title: string;
-  description?: string;
+  description?: string | null;
   position: number;
-  labels?: string[];
+  priority?: CardPriority | null;
+  category?: string | null;
   assignees?: CardAssignee[];
-  dueDate?: string;
-  completedAt?: string | null;
+  labels?: Label[];
+  dueDate?: string | null;
+  archivedAt?: string | null;
+  coverColor?: string | null;
+  coverAttachmentId?: string | null;
+  _count?: CardCounts;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  /** @deprecated FE-only; backend does not return boardId on card */
+  boardId?: string;
 }
 
 export interface Board {
@@ -74,15 +93,75 @@ export interface Board {
   name: string;
   createdAt: string;
   updatedAt: string;
-  /** Optional — not returned by current backend Board DTO. */
   slug?: string;
   description?: string;
   columns?: BoardColumn[];
   cards?: Card[];
 }
 
-/** Shape used by the card-move endpoint. */
+export interface BoardMember {
+  boardId: string;
+  userId: string;
+  role: BoardRole;
+  createdAt: string;
+  user?: User;
+}
+
 export interface CardMoveInput {
-  targetColumnId: string;
-  targetPosition: number;
+  columnId: string;
+  afterCardId?: string;
+  beforeCardId?: string;
+}
+
+export interface ColumnMoveInput {
+  afterColumnId?: string;
+  beforeColumnId?: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  checklistId: string;
+  title: string;
+  completed: boolean;
+  position: number;
+}
+
+export interface Checklist {
+  id: string;
+  cardId: string;
+  title: string;
+  position: number;
+  items: ChecklistItem[];
+}
+
+export interface Comment {
+  id: string;
+  cardId: string;
+  authorId: string;
+  author: User;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Attachment {
+  id: string;
+  cardId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  createdById: string;
+  createdAt: string;
+  url: string;
+}
+
+export interface ActivityEvent {
+  id: string;
+  boardId: string;
+  cardId: string | null;
+  actorId: string;
+  actor: User;
+  type: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
 }

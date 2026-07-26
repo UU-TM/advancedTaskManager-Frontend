@@ -27,9 +27,31 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
-/** Read the backend URL from env (server-side fallback to localhost:3000). */
+/**
+ * Browser-facing API URL (`NEXT_PUBLIC_*`, inlined at build time).
+ * Use for client fetches and any URL handed to the browser.
+ */
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+
+/**
+ * Backend URL for server-side code (route handlers / SSR).
+ * Prefer `API_URL` so Docker can reach the API on the host
+ * (`http://host.docker.internal:3000`) without using container localhost.
+ */
+export function getServerApiBaseUrl(): string {
+  return (
+    process.env.API_URL ??
+    process.env.NEXT_PUBLIC_API_URL ??
+    "http://localhost:3000"
+  );
+}
+
+function resolveApiBaseUrl(): string {
+  return typeof window === "undefined"
+    ? getServerApiBaseUrl()
+    : API_BASE_URL;
+}
 
 /** Routes that should NOT trigger a refresh attempt. */
 const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/auth/refresh"];
@@ -74,20 +96,22 @@ export async function apiFetch<T>(
   const { skipAuth, skipRefresh, relative, headers, ...rest } = options;
 
   const finalHeaders = new Headers(headers);
-  if (!finalHeaders.has("Content-Type") && rest.body) {
+  const isFormData =
+    typeof FormData !== "undefined" && rest.body instanceof FormData;
+  if (!finalHeaders.has("Content-Type") && rest.body && !isFormData) {
     finalHeaders.set("Content-Type", "application/json");
   }
   if (!skipAuth && accessToken && !finalHeaders.has("Authorization")) {
     finalHeaders.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  // Relative URLs (our own route handlers) bypass API_BASE_URL so the
+  // Relative URLs (our own route handlers) bypass the API base so the
   // browser sends the httpOnly refresh cookie to the right origin.
   const url = relative
     ? path
     : path.startsWith("http")
       ? path
-      : `${API_BASE_URL}${path}`;
+      : `${resolveApiBaseUrl()}${path}`;
 
   let res: Response;
   try {

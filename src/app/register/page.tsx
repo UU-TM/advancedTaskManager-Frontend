@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
   AuthShell,
@@ -9,11 +10,13 @@ import {
 } from "@/components/features/auth";
 
 function RegisterContent() {
+  const t = useTranslations("auth");
+
   return (
     <GuestOnly>
       <AuthShell
-        title="Create account"
-        description="Pick a username and password to get started."
+        title={t("createAccountTitle")}
+        description={t("createAccountDescription")}
       >
         <RegisterForm />
       </AuthShell>

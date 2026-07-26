@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus } from "lucide-react";
 import { useCreateCard } from "@/hooks/use-card";
 import { ApiError } from "@/lib/api";
@@ -21,11 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const formSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(120, "Title is too long"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = { title: string };
 
 interface CreateTaskDialogProps {
   boardId: string;
@@ -33,9 +30,24 @@ interface CreateTaskDialogProps {
 }
 
 export function CreateTaskDialog({ boardId, columnId }: CreateTaskDialogProps) {
+  const t = useTranslations("kanban");
+  const tCommon = useTranslations("common");
+  const tVal = useTranslations("validators");
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const createCard = useCreateCard();
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        title: z
+          .string()
+          .trim()
+          .min(1, tVal("titleRequired"))
+          .max(120, tVal("titleMax")),
+      }),
+    [tVal],
+  );
 
   const {
     register,
@@ -61,7 +73,7 @@ export function CreateTaskDialog({ boardId, columnId }: CreateTaskDialogProps) {
       if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
-        setServerError("Could not create task. Please try again.");
+        setServerError(t("createTaskFailed"));
       }
     }
   }
@@ -78,16 +90,20 @@ export function CreateTaskDialog({ boardId, columnId }: CreateTaskDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
-          <Plus className="mr-2 size-4" />
-          Add task
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full cursor-pointer justify-start text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="me-2 size-4" />
+          {t("addTask")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Add task</DialogTitle>
-            <DialogDescription>Give the new task a title.</DialogDescription>
+            <DialogTitle>{t("addTask")}</DialogTitle>
+            <DialogDescription>{t("addTaskDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -97,10 +113,10 @@ export function CreateTaskDialog({ boardId, columnId }: CreateTaskDialogProps) {
               </Alert>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="task-title">Title</Label>
+              <Label htmlFor="task-title">{tCommon("title")}</Label>
               <Input
                 id="task-title"
-                placeholder="Write the README"
+                placeholder={t("taskTitlePlaceholder")}
                 autoComplete="off"
                 aria-invalid={!!errors.title}
                 {...register("title")}
@@ -115,11 +131,11 @@ export function CreateTaskDialog({ boardId, columnId }: CreateTaskDialogProps) {
             <Button type="submit" disabled={isSubmitting || createCard.isPending} className="w-full sm:w-auto">
               {isSubmitting || createCard.isPending ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Adding…
+                  <Loader2 className="me-2 size-4 animate-spin" />
+                  {t("adding")}
                 </>
               ) : (
-                "Add task"
+                t("addTask")
               )}
             </Button>
           </DialogFooter>

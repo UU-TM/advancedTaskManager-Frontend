@@ -66,8 +66,8 @@ function SectionCard({
  * Component showcase
  * ----------------------------------------------------
  * Renders every shared primitive so designers and
- * engineers can verify the Alucard ↔ Dracula tokens
- * in one place. Reachable at `/dev/components`.
+ * engineers can verify light / dark tokens in one place.
+ * Reachable at `/dev/components`.
  */
 export default function ComponentsShowcasePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -83,8 +83,8 @@ export default function ComponentsShowcasePage() {
             Component Showcase
           </h1>
           <p className="text-sm text-muted-foreground">
-            Every shared primitive in both Alucard (light) and Dracula (dark)
-            themes. Use the toggle in the header to switch.
+            Every shared primitive in light and dark themes. Use the sidebar
+            theme toggle to switch.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export default function ComponentsShowcasePage() {
           {/* Buttons */}
           <SectionCard
             title="Buttons"
-            description="Variants map to primary (red/purple), secondary (purple/pink), and outline."
+            description="Variants map to primary (teal), secondary (soft teal), and outline."
           >
             <div className="flex flex-wrap gap-2">
               <Button>Primary</Button>

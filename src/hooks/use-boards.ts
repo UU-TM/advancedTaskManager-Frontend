@@ -18,6 +18,27 @@ export function useBoard(boardId: string | undefined) {
   });
 }
 
+export function useUpdateBoard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      name,
+      workspaceId,
+    }: {
+      id: string;
+      name: string;
+      workspaceId: string;
+    }) => boardsApi.update(id, { name }),
+    onSuccess: (_board, { id, workspaceId }) => {
+      void queryClient.invalidateQueries({ queryKey: ["board", id] });
+      void queryClient.invalidateQueries({
+        queryKey: boardKeys.byWorkspace(workspaceId),
+      });
+    },
+  });
+}
+
 export function useBoards(workspaceId: string | undefined) {
   return useQuery({
     queryKey: boardKeys.byWorkspace(workspaceId ?? ""),

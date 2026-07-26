@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { API_BASE_URL } from "@/lib/api/client";
+import { getServerApiBaseUrl } from "@/lib/api/client";
 import { refreshCookieOptions, REFRESH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 /**
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    const res = await fetch(`${getServerApiBaseUrl()}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

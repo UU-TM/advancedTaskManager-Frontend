@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus } from "lucide-react";
 import { useCreateColumn } from "@/hooks/use-columns";
 import { ApiError } from "@/lib/api";
@@ -21,20 +22,31 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const formSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(40, "Column name is too long"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = { name: string };
 
 interface CreateColumnDialogProps {
   boardId: string;
 }
 
 export function CreateColumnDialog({ boardId }: CreateColumnDialogProps) {
+  const t = useTranslations("kanban");
+  const tCommon = useTranslations("common");
+  const tVal = useTranslations("validators");
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const createColumn = useCreateColumn();
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(1, tVal("nameRequired"))
+          .max(40, tVal("columnNameMax")),
+      }),
+    [tVal],
+  );
 
   const {
     register,
@@ -59,7 +71,7 @@ export function CreateColumnDialog({ boardId }: CreateColumnDialogProps) {
       if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
-        setServerError("Could not create column. Please try again.");
+        setServerError(t("createColumnFailed"));
       }
     }
   }
@@ -76,17 +88,19 @@ export function CreateColumnDialog({ boardId }: CreateColumnDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-32 shrink-0 border-dashed ">
-          <Plus className="size-4" />
+        <Button
+          variant="outline"
+          className="h-auto w-72 shrink-0 cursor-pointer border-dashed py-3 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+        >
+          <Plus className="me-2 size-4" />
+          {t("addColumn")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Add column</DialogTitle>
-            <DialogDescription>
-              Give the new column a name.
-            </DialogDescription>
+            <DialogTitle>{t("addColumn")}</DialogTitle>
+            <DialogDescription>{t("addColumnDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -96,10 +110,10 @@ export function CreateColumnDialog({ boardId }: CreateColumnDialogProps) {
               </Alert>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="column-name">Name</Label>
+              <Label htmlFor="column-name">{tCommon("name")}</Label>
               <Input
                 id="column-name"
-                placeholder="To do"
+                placeholder={t("columnNamePlaceholder")}
                 autoComplete="off"
                 aria-invalid={!!errors.name}
                 {...register("name")}
@@ -118,11 +132,11 @@ export function CreateColumnDialog({ boardId }: CreateColumnDialogProps) {
             >
               {isSubmitting || createColumn.isPending ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Adding…
+                  <Loader2 className="me-2 size-4 animate-spin" />
+                  {t("adding")}
                 </>
               ) : (
-                "Add column"
+                t("addColumn")
               )}
             </Button>
           </DialogFooter>

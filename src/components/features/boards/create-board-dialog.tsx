@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus } from "lucide-react";
 import { useCreateBoard } from "@/hooks/use-boards";
 import { ApiError } from "@/lib/api";
@@ -21,24 +22,31 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const formSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required")
-    .max(64, "Board name is too long"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = { name: string };
 
 interface CreateBoardDialogProps {
   workspaceId: string;
 }
 
 export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
+  const t = useTranslations("boards");
+  const tCommon = useTranslations("common");
+  const tVal = useTranslations("validators");
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const createBoard = useCreateBoard();
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(1, tVal("nameRequired"))
+          .max(64, tVal("boardNameMax")),
+      }),
+    [tVal],
+  );
 
   const {
     register,
@@ -63,7 +71,7 @@ export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
       if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
-        setServerError("Could not create board. Please try again.");
+        setServerError(t("createFailed"));
       }
     }
   }
@@ -80,18 +88,16 @@ export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="mr-2 size-4" />
-          Create New Board
+        <Button className="cursor-pointer">
+          <Plus className="me-2 size-4" />
+          {t("create")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Create board</DialogTitle>
-            <DialogDescription>
-              Give your board a name. You can add columns and cards next.
-            </DialogDescription>
+            <DialogTitle>{t("createTitle")}</DialogTitle>
+            <DialogDescription>{t("createDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -101,10 +107,10 @@ export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
               </Alert>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="board-name">Name</Label>
+              <Label htmlFor="board-name">{tCommon("name")}</Label>
               <Input
                 id="board-name"
-                placeholder="Sprint planning"
+                placeholder={t("namePlaceholder")}
                 autoComplete="off"
                 aria-invalid={!!errors.name}
                 {...register("name")}
@@ -123,11 +129,11 @@ export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
             >
               {isSubmitting || createBoard.isPending ? (
                 <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Creating…
+                  <Loader2 className="me-2 size-4 animate-spin" />
+                  {t("creating")}
                 </>
               ) : (
-                "Create board"
+                t("create")
               )}
             </Button>
           </DialogFooter>
