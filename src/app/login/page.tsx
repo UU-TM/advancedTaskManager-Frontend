@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
   AuthShell,
@@ -9,12 +10,11 @@ import {
 } from "@/components/features/auth";
 
 function LoginContent() {
+  const t = useTranslations("auth");
+
   return (
     <GuestOnly>
-      <AuthShell
-        title="Sign in"
-        description="Welcome back. Enter your credentials to continue."
-      >
+      <AuthShell title={t("signInTitle")} description={t("signInDescription")}>
         <LoginForm />
       </AuthShell>
     </GuestOnly>

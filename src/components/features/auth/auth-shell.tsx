@@ -2,14 +2,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ThemeToggle } from "@/components/layout";
+import { useTranslations } from "next-intl";
+import { LocaleSwitcher, ThemeToggle } from "@/components/layout";
 
 interface AuthShellProps {
   title: string;
@@ -18,38 +12,48 @@ interface AuthShellProps {
 }
 
 /**
- * Centered auth card on the cream background with brand mark + theme toggle.
+ * Centered auth form on a soft slate→teal atmosphere with brand as hero signal.
  */
 export function AuthShell({ title, description, children }: AuthShellProps) {
+  const t = useTranslations("common");
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-      <div className="absolute top-4 right-4">
+    <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#ccfbf180_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#e2e8f0_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#134e4a66_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#1e293b_0%,_transparent_50%)]"
+      />
+      <div className="absolute top-4 end-4 z-10 flex items-center gap-1">
+        <LocaleSwitcher />
         <ThemeToggle />
       </div>
 
-      <Card className="w-full max-w-sm shadow-md">
-        <CardHeader className="items-center text-center">
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center text-center">
           <Link
             href="/"
-            className="mb-2 flex flex-col items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="mb-6 flex flex-col items-center gap-3 outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.svg"
               alt=""
-              width={48}
-              height={48}
-              className="size-12"
+              width={56}
+              height={56}
+              className="size-14"
             />
-            <span className="text-lg font-semibold tracking-tight text-foreground">
-              Kanban
+            <span className="text-2xl font-semibold tracking-tight text-foreground">
+              {t("brand")}
             </span>
           </Link>
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent>{children}</CardContent>
-      </Card>
+          <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card/80 p-6 shadow-sm backdrop-blur-sm">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Palette } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Moon, Sun, Monitor, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,18 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * Theme toggle
- * ----------------------------------------------------
- * Switches between the Alucard (light) and Dracula (dark)
- * palettes without a page reload. `next-themes` writes
- * the chosen class on <html>, and our CSS variables in
- * globals.css take care of the rest.
- *
- * Until hydration finishes we render a placeholder icon
- * to avoid mismatched markup between server and client.
+ * Theme toggle — Light / Dark / System via next-themes.
  */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const t = useTranslations("common");
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -37,19 +31,19 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Toggle theme">
+      <Button variant="ghost" size="icon" aria-label={t("toggleTheme")}>
         <Palette className="size-5" />
       </Button>
     );
   }
 
-  const isDracula = theme === "dracula";
+  const isDark = resolvedTheme === "dark";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Toggle theme">
-          {isDracula ? (
+        <Button variant="ghost" size="icon" aria-label={t("toggleTheme")}>
+          {isDark ? (
             <Moon className="size-5" />
           ) : (
             <Sun className="size-5" />
@@ -57,21 +51,28 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Theme</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => setTheme("alucard")}
-          className={theme === "alucard" ? "bg-accent text-accent-foreground" : ""}
+          onClick={() => setTheme("light")}
+          className={theme === "light" ? "bg-muted" : ""}
         >
-          <Sun className="mr-2 size-4" />
-          Alucard (light)
+          <Sun className="me-2 size-4" />
+          {t("themeLight")}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => setTheme("dracula")}
-          className={theme === "dracula" ? "bg-accent text-accent-foreground" : ""}
+          onClick={() => setTheme("dark")}
+          className={theme === "dark" ? "bg-muted" : ""}
         >
-          <Moon className="mr-2 size-4" />
-          Dracula (dark)
+          <Moon className="me-2 size-4" />
+          {t("themeDark")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setTheme("system")}
+          className={theme === "system" ? "bg-muted" : ""}
+        >
+          <Monitor className="me-2 size-4" />
+          {t("themeSystem")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

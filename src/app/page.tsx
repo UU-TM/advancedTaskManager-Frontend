@@ -1,173 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  Boxes,
-  KeyRound,
-  Layers,
-  Palette,
-  ShieldCheck,
-  Sparkles,
-  Type,
-} from "lucide-react";
-import { AppShell } from "@/components/layout";
+import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-const HIGHLIGHTS = [
-  {
-    icon: Palette,
-    title: "Alucard × Dracula",
-    description:
-      "Two official palettes mapped to CSS variables and switched live with next-themes — no reload.",
-  },
-  {
-    icon: Layers,
-    title: "Typed API client",
-    description:
-      "Fetch wrapper unwraps the backend envelope, surfaces typed ApiError, and auto-refreshes on 401.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Auth infra ready",
-    description:
-      "Access token in memory, refresh token in an httpOnly cookie, edge middleware for protected routes.",
-  },
-  {
-    icon: Boxes,
-    title: "shadcn/ui primitives",
-    description:
-      "Button, Input, Card, Badge, Avatar, Dialog, Progress, Skeleton — all restyled with our tokens.",
-  },
-];
-
-const STACK = [
-  { label: "Next.js 16", href: "https://nextjs.org" },
-  { label: "TypeScript strict", href: "https://www.typescriptlang.org" },
-  { label: "Tailwind CSS 4", href: "https://tailwindcss.com" },
-  { label: "shadcn/ui", href: "https://ui.shadcn.com" },
-  { label: "TanStack Query", href: "https://tanstack.com/query" },
-  { label: "react-hook-form + Zod", href: "https://react-hook-form.com" },
-  { label: "next-themes", href: "https://github.com/pacocoursey/next-themes" },
-];
+import { LocaleSwitcher, ThemeToggle } from "@/components/layout";
 
 export default function HomePage() {
+  const t = useTranslations("home");
+  const tCommon = useTranslations("common");
+  const { isAuthenticated } = useAuth();
+  const primaryHref = isAuthenticated ? "/boards" : "/login";
+  const primaryLabel = isAuthenticated ? t("openBoards") : t("getStarted");
+
   return (
-    <AppShell>
-      <div className="mx-auto max-w-5xl px-4 py-12 md:px-8 md:py-20">
-        {/* Hero */}
-        <div className="mb-14 max-w-3xl space-y-5">
-          <Badge
-            variant="outline"
-            className="bg-card text-foreground/80 border-border"
-          >
-            <Sparkles className="mr-1 size-3" />
-            Frontend scaffold · v0.1
-          </Badge>
-          <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-            Kanban, dressed in{" "}
-            <span className="text-primary">Alucard</span> and{" "}
-            <span className="text-secondary">Dracula</span>.
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-background">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,_#ccfbf1aa_0%,_transparent_60%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,_#134e4a88_0%,_transparent_60%)]"
+      />
+
+      <header className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="" width={32} height={32} className="size-8" />
+          <span className="text-lg font-semibold tracking-tight">
+            {tCommon("brand")}
+          </span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <LocaleSwitcher />
+          <ThemeToggle />
+          {!isAuthenticated && (
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/login">{t("signIn")}</Link>
+            </Button>
+          )}
+        </div>
+      </header>
+
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-20 pt-8 text-center md:px-10">
+        <motion.div
+          className="mx-auto max-w-xl space-y-6"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        >
+          <p className="text-sm font-medium text-primary">{tCommon("brand")}</p>
+          <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            {t("headline")}
           </h1>
           <p className="text-base text-muted-foreground md:text-lg">
-            A scalable Next.js App Router foundation with a typed API client,
-            theme-aware design tokens, and auth infrastructure — ready for the
-            team to build boards, cards, and workspaces on top of.
+            {t("subtitle")}
           </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button asChild size="lg">
-              <Link href="/dev/components">
-                Explore components
-                <ArrowRight className="ml-2 size-4" />
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Button asChild size="lg" className="cursor-pointer">
+              <Link href={primaryHref}>
+                {primaryLabel}
+                <ArrowRight className="ms-2 size-4 rtl:rotate-180" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/login">
-                <KeyRound className="mr-2 size-4" />
-                Sign in
-              </Link>
-            </Button>
+            {!isAuthenticated && (
+              <Button asChild size="lg" variant="outline" className="cursor-pointer">
+                <Link href="/register">{t("createAccount")}</Link>
+              </Button>
+            )}
           </div>
-          <p className="pt-1 text-xs text-muted-foreground">
-            Tip: use the palette icon in the top-right to switch themes.
-          </p>
-        </div>
-
-        {/* Highlights */}
-        <div className="mb-14 grid grid-cols-1 gap-4 md:grid-cols-2">
-          {HIGHLIGHTS.map(({ icon: Icon, title, description }) => (
-            <Card key={title} className="h-full">
-              <CardHeader>
-                <div className="mb-2 flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Icon className="size-5" />
-                </div>
-                <CardTitle className="text-base">{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-
-        {/* Stack + layout summary */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Type className="size-4" /> Stack & conventions
-              </CardTitle>
-              <CardDescription>
-                Defaults agreed by the team. Stick to these unless there&apos;s
-                a reason not to.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-                {STACK.map((s) => (
-                  <li
-                    key={s.label}
-                    className="flex items-center justify-between rounded-md border bg-card/40 px-3 py-2"
-                  >
-                    <span>{s.label}</span>
-                    <ArrowRight className="size-3 text-muted-foreground" />
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Project layout</CardTitle>
-              <CardDescription>One glance at the structure.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <pre className="overflow-x-auto rounded-md bg-muted/40 p-3 text-[11px] leading-5 text-muted-foreground">
-{`src/
-  app/            # routes (thin)
-  components/
-    ui/           # shadcn primitives
-    layout/       # AppShell, Sidebar, Header
-    features/     # auth, boards, kanban
-  lib/
-    api/          # client + modules
-    auth/         # context, storage, config
-    validators/   # Zod schemas
-  hooks/
-  types/
-  middleware.ts`}
-              </pre>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </AppShell>
+        </motion.div>
+      </main>
+    </div>
   );
 }

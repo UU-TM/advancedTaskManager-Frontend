@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Board, User } from "@/types/domain";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +21,7 @@ function initials(name: string): string {
 export function boardProgressPercent(board: Board): number {
   const cards = board.cards ?? [];
   if (cards.length === 0) return 0;
-  const done = cards.filter((c) => !!c.completedAt).length;
+  const done = cards.filter((c) => !!c.archivedAt).length;
   return Math.round((done / cards.length) * 100);
 }
 
@@ -28,6 +30,7 @@ interface BoardCardProps {
   favorite: boolean;
   onToggleFavorite: (boardId: string) => void;
   member?: User | null;
+  index?: number;
 }
 
 export function BoardCard({
@@ -35,17 +38,25 @@ export function BoardCard({
   favorite,
   onToggleFavorite,
   member,
+  index = 0,
 }: BoardCardProps) {
+  const t = useTranslations("boards");
+  const tCommon = useTranslations("common");
   const progress = boardProgressPercent(board);
   const memberName = member?.displayName ?? member?.username ?? "?";
 
   return (
-    <div className="group relative rounded-xl border bg-card text-card-foreground shadow-sm transition-shadow hover:shadow-md">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.04, 0.24), ease: "easeOut" }}
+      className="group relative rounded-xl border border-border bg-card text-card-foreground transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md active:translate-y-0 active:scale-[0.99]"
+    >
       <Link
         href={`/boards/${board.id}`}
-        className="block p-5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block cursor-pointer p-5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <div className="mb-4 flex items-start justify-between gap-2 pr-8">
+        <div className="mb-4 flex items-start justify-between gap-2 pe-8">
           <h3 className="line-clamp-2 text-base font-semibold leading-snug">
             {board.name}
           </h3>
@@ -54,14 +65,14 @@ export function BoardCard({
         <div className="space-y-2">
           <Progress
             value={progress}
-            className="h-1.5 bg-secondary/30 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-secondary [&>[data-slot=progress-indicator]]:to-primary"
+            className="h-1.5 bg-muted [&>[data-slot=progress-indicator]]:bg-primary"
           />
-          <p className="text-xs text-muted-foreground">Recent activity</p>
+          <p className="text-xs text-muted-foreground">{t("recentActivity")}</p>
         </div>
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground">
-            {progress}% complete
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {tCommon("percentComplete", { percent: progress })}
           </span>
           <Avatar className="size-7 border border-border">
             <AvatarImage src={member?.avatarUrl} alt={memberName} />
@@ -74,10 +85,10 @@ export function BoardCard({
 
       <button
         type="button"
-        aria-label={favorite ? "Unfavorite board" : "Favorite board"}
+        aria-label={favorite ? t("unfavorite") : t("favorite")}
         aria-pressed={favorite}
         className={cn(
-          "absolute top-4 right-4 rounded-md p-1.5 transition-colors",
+          "absolute top-4 end-4 cursor-pointer rounded-md p-1.5 transition-colors duration-150",
           favorite
             ? "text-primary"
             : "text-muted-foreground hover:text-foreground",
@@ -93,6 +104,6 @@ export function BoardCard({
           aria-hidden
         />
       </button>
-    </div>
+    </motion.div>
   );
 }

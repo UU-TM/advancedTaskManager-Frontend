@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { API_BASE_URL } from "@/lib/api/client";
+import { getServerApiBaseUrl } from "@/lib/api/client";
 import { refreshCookieOptions, REFRESH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 /**
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const authorization = req.headers.get("authorization");
 
   try {
-    await fetch(`${API_BASE_URL}/auth/logout`, {
+    await fetch(`${getServerApiBaseUrl()}/auth/logout`, {
       method: "POST",
       headers: {
         ...(authorization ? { Authorization: authorization } : {}),
