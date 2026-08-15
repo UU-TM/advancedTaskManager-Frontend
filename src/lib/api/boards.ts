@@ -111,4 +111,21 @@ export const boardsApi = {
       method: "DELETE",
     });
   },
+
+  async transfer(boardId: string, userId: string): Promise<Board> {
+    return apiFetch<Board>(`/boards/${boardId}/transfer`, {
+      method: "POST",
+      body: JSON.stringify({ userId }),
+    });
+  },
+
+  async move(
+    boardId: string,
+    input: { workspaceId: string; confirmMemberDrop?: boolean },
+  ): Promise<Board> {
+    return apiFetch<Board>(`/boards/${boardId}/move`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
 };

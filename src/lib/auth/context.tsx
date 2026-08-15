@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/types/domain";
 import {
   authApi,
@@ -37,16 +38,23 @@ interface AuthContextValue {
   register: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<string | null>;
+  /** Re-fetch `/auth/me` and update session user (e.g. after profile edit). */
+  refreshUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refreshRef = useRef<() => Promise<string | null>>(async () => null);
+
+  const clearUserScopedCache = useCallback(() => {
+    queryClient.clear();
+  }, [queryClient]);
 
   const clearRefreshTimer = useCallback(() => {
     if (refreshTimerRef.current !== null) {
@@ -91,11 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return result.accessToken;
         }
         clearRefreshTimer();
+        clearUserScopedCache();
         authStorage.clear();
         setUser(null);
         return null;
       } catch {
         clearRefreshTimer();
+        clearUserScopedCache();
         authStorage.clear();
         setUser(null);
         return null;
@@ -106,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     refreshPromiseRef.current = promise;
     return promise;
-  }, [clearRefreshTimer, scheduleRefresh]);
+  }, [clearRefreshTimer, clearUserScopedCache, scheduleRefresh]);
 
   refreshRef.current = refresh;
 
@@ -114,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     configureAuth(refresh, () => {
       clearRefreshTimer();
+      clearUserScopedCache();
       authStorage.clear();
       setUser(null);
       if (typeof window !== "undefined") {
@@ -137,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(me);
         } catch {
           clearRefreshTimer();
+          clearUserScopedCache();
           authStorage.clear();
           setUser(null);
         }
@@ -148,21 +160,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsub();
       clearRefreshTimer();
     };
-  }, [refresh, clearRefreshTimer]);
+  }, [refresh, clearRefreshTimer, clearUserScopedCache]);
 
   const login = useCallback(
     async (username: string, password: string) => {
+      clearUserScopedCache();
       const session = await authApi.login({ username, password });
       setApiClientToken(session.tokens.accessToken);
       authStorage.setSession(session.tokens.accessToken, session.user);
       setUser(session.user);
       scheduleRefresh(session.tokens.accessToken);
     },
-    [scheduleRefresh],
+    [clearUserScopedCache, scheduleRefresh],
   );
 
   const register = useCallback(
     async (username: string, password: string) => {
+      clearUserScopedCache();
       const session = await authApi.register({
         username,
         password,
@@ -173,16 +187,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session.user);
       scheduleRefresh(session.tokens.accessToken);
     },
-    [scheduleRefresh],
+    [clearUserScopedCache, scheduleRefresh],
   );
 
   const logout = useCallback(async () => {
     await authApi.logout();
     clearRefreshTimer();
+    clearUserScopedCache();
     setApiClientToken(null);
     authStorage.clear();
     setUser(null);
-  }, [clearRefreshTimer]);
+  }, [clearRefreshTimer, clearUserScopedCache]);
+
+  const refreshUser = useCallback(async (): Promise<User | null> => {
+    try {
+      const me = await authApi.me();
+      authStorage.setUser(me);
+      setUser(me);
+      return me;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -194,8 +220,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       refresh,
+      refreshUser,
     }),
-    [user, isLoading, login, register, logout, refresh],
+    [user, isLoading, login, register, logout, refresh, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

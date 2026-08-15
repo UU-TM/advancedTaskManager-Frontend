@@ -12,7 +12,7 @@ interface AuthShellProps {
 }
 
 /**
- * Centered auth form on a soft slate→teal atmosphere with brand as hero signal.
+ * Centered auth form on a warm iris→rose atmosphere with brand as hero signal.
  */
 export function AuthShell({ title, description, children }: AuthShellProps) {
   const t = useTranslations("common");
@@ -21,7 +21,7 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#ccfbf180_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#e2e8f0_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#134e4a66_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#1e293b_0%,_transparent_50%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#c4b0eb66_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#f2a4a044_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#6347a066_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#b8364440_0%,_transparent_50%)]"
       />
       <div className="absolute top-4 end-4 z-10 flex items-center gap-1">
         <LocaleSwitcher />

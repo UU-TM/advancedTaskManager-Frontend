@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,13 +26,24 @@ type FormValues = { name: string };
 
 interface CreateBoardDialogProps {
   workspaceId: string;
+  /** Custom trigger; defaults to the boards “Create” button. */
+  trigger?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
+export function CreateBoardDialog({
+  workspaceId,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: CreateBoardDialogProps) {
   const t = useTranslations("boards");
   const tCommon = useTranslations("common");
   const tVal = useTranslations("validators");
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
   const [serverError, setServerError] = useState<string | null>(null);
   const createBoard = useCreateBoard();
 
@@ -88,10 +99,12 @@ export function CreateBoardDialog({ workspaceId }: CreateBoardDialogProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="cursor-pointer">
-          <Plus className="me-2 size-4" />
-          {t("create")}
-        </Button>
+        {trigger ?? (
+          <Button className="cursor-pointer">
+            <Plus className="me-2 size-4" />
+            {t("create")}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>

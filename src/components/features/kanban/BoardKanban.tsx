@@ -24,6 +24,7 @@ import { Column } from "./Column";
 import { CreateColumnDialog } from "./CreateColumnDialog";
 import { CardDetailModal } from "./CardDetailModal";
 import { BoardMembersDialog } from "./BoardMembersDialog";
+import { BoardManageMenu } from "./BoardManageMenu";
 import {
   useArchiveCard,
   useCopyCard,
@@ -40,7 +41,10 @@ import {
 import { useBoard } from "@/hooks/use-boards";
 import type { BoardColumn, Card } from "@/types/domain";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { KanbanColumnSkeleton } from "@/components/ui/kanban-column-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
+import { Users, Columns3 } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -203,10 +207,12 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
             {t("boards")}
           </Link>
         </Button>
-        <h1 className="truncate text-base font-semibold tracking-tight md:text-lg">
+        <AppBreadcrumbs boardName={board?.name} />
+        <h1 className="truncate text-base font-semibold tracking-tight sm:hidden md:text-lg">
           {board?.name ?? t("loadingBoard")}
         </h1>
         <div className="ms-auto flex items-center gap-2">
+          {board && <BoardManageMenu board={board} />}
           <Button
             variant="outline"
             size="sm"
@@ -220,14 +226,21 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
       </header>
 
       <div className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30 p-4 md:p-6">
-        {isLoading && (
-          <p className="text-sm text-muted-foreground">{t("loadingColumns")}</p>
-        )}
+        {isLoading && <KanbanColumnSkeleton />}
         {isError && (
           <p className="text-sm text-destructive">{t("failedColumns")}</p>
         )}
 
-        {columns && (
+        {!isLoading && !isError && columns.length === 0 && (
+          <EmptyState
+            icon={Columns3}
+            title={t("emptyBoard.title")}
+            description={t("emptyBoard.description")}
+            action={<CreateColumnDialog boardId={boardId} />}
+          />
+        )}
+
+        {!isLoading && !isError && columns.length > 0 && (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
@@ -364,6 +377,7 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
 
       <BoardMembersDialog
         boardId={boardId}
+        workspaceId={board?.workspaceId}
         open={membersOpen}
         onOpenChange={setMembersOpen}
       />

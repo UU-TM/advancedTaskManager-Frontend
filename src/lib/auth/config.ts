@@ -8,8 +8,12 @@
  */
 
 export const PROTECTED_PREFIXES = [
+  "/home",
   "/boards",
+  "/templates",
+  "/integrations",
   "/workspace",
+  "/invitations",
   "/settings",
   "/profile",
 ] as const;
@@ -24,7 +28,7 @@ export const PUBLIC_PREFIXES = [
 
 export const LOGIN_ROUTE = "/login";
 /** Post-auth landing (and guest-redirect target). */
-export const HOME_ROUTE = "/boards";
+export const HOME_ROUTE = "/home";
 
 /** Cookie name used by the refresh route handler. */
 export const REFRESH_COOKIE_NAME = "kanban.refresh-token";

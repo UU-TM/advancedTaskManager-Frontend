@@ -4,10 +4,11 @@ import { Trello } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { useBoards } from "@/hooks/use-boards";
-import { useEnsureWorkspace } from "@/hooks/use-ensure-workspace";
+import { useActiveWorkspace } from "@/components/layout/active-workspace-context";
 import { useFavoriteBoards } from "@/hooks/use-favorite-boards";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageHeader } from "@/components/ui/page-header";
 import { BoardCard } from "./board-card";
 import { CreateBoardDialog } from "./create-board-dialog";
 
@@ -41,7 +42,7 @@ export function BoardsPageView() {
     isLoading: workspaceLoading,
     isError: workspaceError,
     error: workspaceErr,
-  } = useEnsureWorkspace();
+  } = useActiveWorkspace();
   const {
     data: boards,
     isLoading: boardsLoading,
@@ -62,13 +63,11 @@ export function BoardsPageView() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        {workspaceId && <CreateBoardDialog workspaceId={workspaceId} />}
-      </div>
+      <PageHeader
+        title={t("title")}
+        description={t("subtitle")}
+        actions={workspaceId ? <CreateBoardDialog workspaceId={workspaceId} /> : undefined}
+      />
 
       {errorMessage && (
         <Alert variant="destructive" className="mb-6">

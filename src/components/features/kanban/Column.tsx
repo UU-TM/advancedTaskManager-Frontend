@@ -16,6 +16,7 @@ import { CreateTaskDialog } from "./CreateTaskDialog";
 import type { BoardColumn, Card } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -52,7 +53,6 @@ export function Column({
   onMoveColumn,
 }: ColumnProps) {
   const t = useTranslations("kanban");
-  const tCommon = useTranslations("common");
   const { data: cards = [], isLoading } = useCards(column.id);
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(column.title);
@@ -147,9 +147,10 @@ export function Column({
           </div>
 
           <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2.5">
-            {isLoading && (
-              <p className="text-xs text-muted-foreground">{tCommon("loadingEllipsis")}</p>
-            )}
+            {isLoading &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              ))}
             <SortableContext
               items={cardIds}
               strategy={verticalListSortingStrategy}

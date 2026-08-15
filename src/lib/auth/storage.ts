@@ -59,6 +59,11 @@ export const authStorage = {
     emit();
   },
 
+  setUser(user: User | null): void {
+    state = { ...state, user };
+    emit();
+  },
+
   clear(): void {
     state = { accessToken: null, user: null };
     emit();

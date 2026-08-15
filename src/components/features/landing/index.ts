@@ -1,0 +1,10 @@
+export { LandingNav } from "./landing-nav";
+export { LandingHero } from "./landing-hero";
+export { LandingSolutions } from "./landing-solutions";
+export { LandingFeatures } from "./landing-features";
+export { LandingIntegrations } from "./landing-integrations";
+export { LandingTestimonials } from "./landing-testimonials";
+export { LandingPricing } from "./landing-pricing";
+export { LandingFaq } from "./landing-faq";
+export { LandingCta } from "./landing-cta";
+export { LandingFooter } from "./landing-footer";

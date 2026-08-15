@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
@@ -111,7 +112,7 @@ function ProgressBar({ value }: { value: number }) {
   );
 }
 
-/** Brief teal pulse when a rewarding action succeeds. */
+/** Brief brand pulse when a rewarding action succeeds. */
 function SuccessPulse({ show }: { show: boolean }) {
   return (
     <AnimatePresence>
@@ -205,30 +206,47 @@ export function CardDetailModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-xl sm:max-w-3xl">
-        <DialogHeader className="relative shrink-0 space-y-0 border-b border-border/80 py-4 ps-6 pe-14 text-start">
+        <DialogHeader className="relative shrink-0 space-y-0 border-b border-border/80 text-start">
           <DialogTitle className="sr-only">{t("details")}</DialogTitle>
-          {card?.coverColor && (
+          {card?.coverColor ? (
             <motion.div
               layout
-              className="-mx-6 -mt-4 mb-4 h-20"
+              className="rounded-t-2xl px-6 pb-5 pt-12 pe-14"
               style={{ backgroundColor: card.coverColor }}
               transition={{ duration: 0.25 }}
-            />
+            >
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-auto rounded-none border-none bg-transparent px-0 py-1.5 text-xl font-semibold text-white shadow-none outline-none placeholder:text-white/70 focus-visible:border-none focus-visible:ring-0 dark:bg-transparent"
+                placeholder={t("titlePlaceholder")}
+              />
+            </motion.div>
+          ) : (
+            <div className="py-4 ps-6 pe-14">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-auto rounded-none border-none bg-transparent px-0 py-1.5 text-xl font-semibold shadow-none outline-none focus-visible:border-none focus-visible:ring-0 dark:bg-transparent"
+                placeholder={t("titlePlaceholder")}
+              />
+            </div>
           )}
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="h-auto rounded-none border-none bg-transparent px-0 py-1.5 text-xl font-semibold shadow-none outline-none focus-visible:border-none focus-visible:ring-0 dark:bg-transparent"
-            placeholder={t("titlePlaceholder")}
-          />
         </DialogHeader>
 
         <div className="grid flex-1 gap-8 overflow-y-auto px-6 py-5 md:grid-cols-[1fr_200px]">
-          <div className="min-w-0 space-y-8">
+          <div className="min-w-0">
             {isLoading && (
               <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
             )}
 
+            <Tabs defaultValue="details" className="gap-6">
+              <TabsList>
+                <TabsTrigger value="details">{t("details")}</TabsTrigger>
+                <TabsTrigger value="activity">{t("activity")}</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="mt-0 space-y-8">
             <Section
               title={t("labels")}
               delay={0.02}
@@ -580,11 +598,13 @@ export function CardDetailModal({
                 />
               </label>
             </Section>
+              </TabsContent>
 
+              <TabsContent value="activity" className="mt-0 space-y-8">
             <Section
               title={t("comments")}
               icon={<MessageSquare className="size-3.5" />}
-              delay={0.12}
+              delay={0.02}
             >
               <ul className="space-y-3">
                 <AnimatePresence initial={false}>
@@ -668,6 +688,8 @@ export function CardDetailModal({
                 {activity.length === 0 && <li>{t("noActivity")}</li>}
               </ul>
             </Section>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <aside className="space-y-5 md:sticky md:top-0 md:self-start">

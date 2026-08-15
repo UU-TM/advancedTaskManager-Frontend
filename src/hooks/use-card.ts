@@ -192,6 +192,7 @@ export function useAssignCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(card.columnId),
       });
+      void queryClient.invalidateQueries({ queryKey: ["home"] });
     },
   });
 }

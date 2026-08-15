@@ -72,10 +72,13 @@ export function BoardCard({
 
         <div className="mt-4 flex items-center justify-between">
           <span className="text-xs tabular-nums text-muted-foreground">
-            {tCommon("percentComplete", { percent: progress })}
+            {tCommon("percentArchived", { percent: progress })}
           </span>
           <Avatar className="size-7 border border-border">
-            <AvatarImage src={member?.avatarUrl} alt={memberName} />
+            <AvatarImage
+              src={member?.avatarUrl ?? undefined}
+              alt={memberName}
+            />
             <AvatarFallback className="text-[10px]">
               {initials(memberName)}
             </AvatarFallback>
@@ -88,7 +91,7 @@ export function BoardCard({
         aria-label={favorite ? t("unfavorite") : t("favorite")}
         aria-pressed={favorite}
         className={cn(
-          "absolute top-4 end-4 cursor-pointer rounded-md p-1.5 transition-colors duration-150",
+          "absolute top-3 end-3 flex size-11 min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-md transition-colors duration-150",
           favorite
             ? "text-primary"
             : "text-muted-foreground hover:text-foreground",
