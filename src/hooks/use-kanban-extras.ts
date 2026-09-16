@@ -143,6 +143,11 @@ export function useCommentMutations(cardId: string) {
       mutationFn: (body: string) => commentsApi.create(cardId, body),
       onSuccess: invalidate,
     }),
+    update: useMutation({
+      mutationFn: ({ id, body }: { id: string; body: string }) =>
+        commentsApi.update(id, body),
+      onSuccess: invalidate,
+    }),
     remove: useMutation({
       mutationFn: (id: string) => commentsApi.remove(id),
       onSuccess: invalidate,

@@ -10,8 +10,11 @@ export const timeEntriesApi = {
     return apiFetch<TimeEntry[]>(`/me/time-entries?limit=${limit}`);
   },
 
-  start(): Promise<TimeEntry> {
-    return apiFetch<TimeEntry>("/me/time-entries/start", { method: "POST" });
+  start(cardId?: string): Promise<TimeEntry> {
+    return apiFetch<TimeEntry>("/me/time-entries/start", {
+      method: "POST",
+      body: JSON.stringify(cardId ? { cardId } : {}),
+    });
   },
 
   pause(): Promise<TimeEntry> {

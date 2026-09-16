@@ -94,7 +94,7 @@ export function TimeTrackerWidget() {
             {!active || active.status === "STOPPED" ? (
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={() => void start.mutateAsync()}
+                onClick={() => void start.mutateAsync(undefined)}
               >
                 {t("start")}
               </DropdownMenuItem>
@@ -149,7 +149,7 @@ export function TimeTrackerWidget() {
             onClick={() =>
               void (active?.status === "PAUSED"
                 ? resume.mutateAsync()
-                : start.mutateAsync())
+                : start.mutateAsync(undefined))
             }
           >
             <Play className="size-5 fill-foreground" />

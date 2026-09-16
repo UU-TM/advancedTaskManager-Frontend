@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatAppDate } from "@/lib/date";
+import { playCrumplePaper } from "@/lib/crumple-paper";
 import type { Locale } from "@/i18n/config";
 import type { Card, BoardColumn } from "@/types/domain";
 import { PRIORITY_COLORS } from "./priority";
@@ -47,6 +49,8 @@ export function Task({
   const t = useTranslations("kanban");
   const tCard = useTranslations("card");
   const locale = useLocale() as Locale;
+  const cardElRef = useRef<HTMLDivElement | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const {
     attributes,
     listeners,
@@ -57,7 +61,35 @@ export function Task({
   } = useSortable({
     id: card.id,
     data: { type: "card", card },
+    disabled: isRemoving,
   });
+
+  const setRefs = useCallback(
+    (node: HTMLDivElement | null) => {
+      cardElRef.current = node;
+      setNodeRef(node);
+    },
+    [setNodeRef],
+  );
+
+  const removeWithCrumple = useCallback(
+    (action: (c: Card) => void) => {
+      if (isRemoving) return;
+      const el = cardElRef.current;
+      if (!el) {
+        action(card);
+        return;
+      }
+      setIsRemoving(true);
+      void playCrumplePaper(el, {
+        onComplete: () => action(card),
+      }).catch(() => {
+        setIsRemoving(false);
+        action(card);
+      });
+    },
+    [card, isRemoving],
+  );
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -83,14 +115,18 @@ export function Task({
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          ref={setNodeRef}
+          ref={setRefs}
           style={style}
           {...attributes}
           {...listeners}
           role="button"
           tabIndex={0}
-          onClick={() => onOpen(card.id)}
+          onClick={() => {
+            if (isRemoving) return;
+            onOpen(card.id);
+          }}
           onKeyDown={(e) => {
+            if (isRemoving) return;
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               onOpen(card.id);
@@ -99,6 +135,7 @@ export function Task({
           className={cn(
             "group cursor-grab rounded-lg border border-border bg-card text-sm shadow-none transition-[box-shadow,opacity,border-color,transform] duration-150 hover:border-primary/30 hover:shadow-sm active:scale-[0.99] active:cursor-grabbing touch-manipulation",
             isDragging && "opacity-50 scale-105 shadow-md ring-2 ring-primary/30",
+            isRemoving && "pointer-events-none",
           )}
         >
           {card.coverColor && (
@@ -197,10 +234,16 @@ export function Task({
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={() => onArchive(card)}>{t("archiveCard")}</ContextMenuItem>
         <ContextMenuItem
+          disabled={isRemoving}
+          onClick={() => removeWithCrumple(onArchive)}
+        >
+          {t("archiveCard")}
+        </ContextMenuItem>
+        <ContextMenuItem
+          disabled={isRemoving}
           className="text-destructive focus:text-destructive"
-          onClick={() => onDelete(card)}
+          onClick={() => removeWithCrumple(onDelete)}
         >
           {t("deleteCard")}
         </ContextMenuItem>

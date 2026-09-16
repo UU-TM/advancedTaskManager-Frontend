@@ -34,7 +34,7 @@ function useInvalidateTime() {
 export function useStartTimeEntry() {
   const invalidate = useInvalidateTime();
   return useMutation({
-    mutationFn: () => timeEntriesApi.start(),
+    mutationFn: (cardId?: string) => timeEntriesApi.start(cardId),
     onSuccess: invalidate,
   });
 }

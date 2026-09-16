@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Languages } from "lucide-react";
 import { setLocale } from "@/i18n/actions";
-import { locales, type Locale } from "@/i18n/config";
+import { localeDirection, locales, type Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,8 +15,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+function applyDocumentLocale(next: Locale) {
+  const dir = localeDirection(next);
+  document.documentElement.lang = next;
+  document.documentElement.dir = dir;
+  document.documentElement.style.setProperty(
+    "--font-app-sans",
+    next === "fa" ? "var(--font-vazirmatn)" : "var(--font-plus-jakarta)",
+  );
+  document.body.style.fontFamily =
+    next === "fa" ? "var(--font-vazirmatn), Tahoma, sans-serif" : "";
+}
+
 /**
- * Language switcher — sets NEXT_LOCALE cookie and refreshes the tree.
+ * Language switcher — sets NEXT_LOCALE cookie and soft-refreshes the tree.
+ * Avoids window.location.reload() which loops with the server-action refresh.
  */
 export function LocaleSwitcher() {
   const t = useTranslations("common");
@@ -26,6 +39,7 @@ export function LocaleSwitcher() {
   async function choose(next: Locale) {
     if (next === locale) return;
     await setLocale(next);
+    applyDocumentLocale(next);
     router.refresh();
   }
 

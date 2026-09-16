@@ -35,6 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
 import type { Board } from "@/types/domain";
+import { SaveAsTemplateDialog } from "@/components/features/templates/save-as-template-dialog";
 
 type BoardManageMenuProps = {
   board: Board;
@@ -119,6 +120,7 @@ export function BoardManageMenu({ board }: BoardManageMenuProps) {
 
   return (
     <>
+      <SaveAsTemplateDialog boardId={board.id} boardName={board.name} />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="cursor-pointer">

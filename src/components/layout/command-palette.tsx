@@ -12,17 +12,29 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import {
+  BarChart3,
+  ClipboardList,
+  CreditCard,
   Home,
+  Inbox,
+  LayoutDashboard,
   LayoutTemplate,
   LogOut,
   Moon,
+  Package,
   Plug,
+  Rocket,
   Settings,
+  Sparkles,
   Sun,
+  Target,
   Trello,
+  Users,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearch } from "@/hooks/use-activity-stats";
+import { useNlSearch } from "@/hooks/use-ai";
 import { LOGIN_ROUTE } from "@/lib/auth/config";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,8 +50,18 @@ import {
 
 const NAV_ITEMS = [
   { href: "/home", icon: Home, labelKey: "home" as const },
+  { href: "/my-work", icon: Inbox, labelKey: "myWork" as const },
+  { href: "/inbox", icon: Bell, labelKey: "inbox" as const },
   { href: "/boards", icon: Trello, labelKey: "myBoards" as const },
+  { href: "/analytics", icon: BarChart3, labelKey: "analytics" as const },
+  { href: "/workload", icon: Users, labelKey: "workload" as const },
+  { href: "/sprints", icon: Rocket, labelKey: "sprints" as const },
+  { href: "/goals", icon: Target, labelKey: "goals" as const },
+  { href: "/portfolio", icon: LayoutDashboard, labelKey: "portfolio" as const },
+  { href: "/forms", icon: ClipboardList, labelKey: "forms" as const },
   { href: "/templates", icon: LayoutTemplate, labelKey: "templates" as const },
+  { href: "/marketplace", icon: Package, labelKey: "marketplace" as const },
+  { href: "/billing", icon: CreditCard, labelKey: "billing" as const },
   { href: "/integrations", icon: Plug, labelKey: "integrations" as const },
   { href: "/settings", icon: Settings, labelKey: "settings" as const },
 ];
@@ -63,13 +85,20 @@ export function useCommandPalette() {
 export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
+  const tAi = useTranslations("ai");
   const router = useRouter();
   const locale = useLocale();
   const { setTheme, resolvedTheme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const { data, isFetching } = useSearch(q, open && q.trim().length > 0);
+  const isNl = q.trim().startsWith("?");
+  const nlQuery = isNl ? q.trim().slice(1).trim() : "";
+  const { data, isFetching } = useSearch(
+    q,
+    open && q.trim().length > 0 && !isNl,
+  );
+  const nlSearch = useNlSearch();
 
   const go = useCallback(
     (href: string) => {
@@ -91,6 +120,15 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!open || !isNl || nlQuery.length < 2) return;
+    const handle = window.setTimeout(() => {
+      nlSearch.mutate(nlQuery);
+    }, 350);
+    return () => window.clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on query change
+  }, [open, isNl, nlQuery]);
+
   async function handleLogout() {
     setOpen(false);
     await logout();
@@ -103,6 +141,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   }
 
   const shortcutLabel = locale === "fa" ? "Ctrl+K" : "⌘K";
+  const nlCards = nlSearch.data?.cards ?? [];
 
   return (
     <CommandPaletteContext.Provider value={{ open, setOpen, shortcutLabel }}>
@@ -117,13 +156,13 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
         description={t("searchPlaceholder")}
       >
         <CommandInput
-          placeholder={t("searchPlaceholder")}
+          placeholder={t("searchPlaceholderNl")}
           value={q}
           onValueChange={setQ}
         />
         <CommandList>
           <CommandEmpty>
-            {isFetching ? (
+            {isFetching || (isNl && nlSearch.isPending) ? (
               <div className="space-y-2 px-2 py-3">
                 <Skeleton className="h-8 w-full" />
                 <Skeleton className="h-8 w-full" />
@@ -150,7 +189,27 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
             </CommandGroup>
           )}
 
-          {q.trim() && (
+          {isNl && nlQuery && (
+            <CommandGroup heading={tAi("nlResults")}>
+              {nlCards.map((card) => (
+                <CommandItem
+                  key={card.id}
+                  value={`nl-${card.title}`}
+                  onSelect={() =>
+                    go(`/boards/${card.boardId}?card=${card.id}`)
+                  }
+                >
+                  <Sparkles className="size-4" />
+                  <span className="truncate">{card.title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {card.boardName}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {q.trim() && !isNl && (
             <>
               {data && data.boards.length > 0 && (
                 <CommandGroup heading={t("searchBoards")}>

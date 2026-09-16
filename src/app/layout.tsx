@@ -7,6 +7,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { Providers } from "./providers";
+import { PwaRegister } from "@/components/pwa-register";
 import { localeDirection, type Locale } from "@/i18n/config";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -36,6 +37,12 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: "Frontend Team" }],
     icons: {
       icon: "/logo.svg",
+      apple: "/icons/icon-192.png",
+    },
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: t("title"),
     },
   };
 }
@@ -57,7 +64,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       style={
         {
-          "--font-sans":
+          "--font-app-sans":
             locale === "fa"
               ? "var(--font-vazirmatn)"
               : "var(--font-plus-jakarta)",
@@ -66,12 +73,20 @@ export default async function RootLayout({
     >
       <body
         className={`${fontVariable} font-sans antialiased bg-background text-foreground`}
+        style={
+          locale === "fa"
+            ? ({
+                fontFamily: "var(--font-vazirmatn), Tahoma, sans-serif",
+              } as CSSProperties)
+            : undefined
+        }
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             {children}
             <Toaster />
             <SonnerToaster richColors closeButton />
+            <PwaRegister />
           </Providers>
         </NextIntlClientProvider>
       </body>

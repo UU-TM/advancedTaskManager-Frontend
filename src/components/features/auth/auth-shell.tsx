@@ -21,7 +21,7 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 py-10">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#c4b0eb66_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#f2a4a044_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#6347a066_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#b8364440_0%,_transparent_50%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#99f6e466_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#fdba7444_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_at_top,_#0f766e66_0%,_transparent_55%),radial-gradient(ellipse_at_bottom_right,_#c2410c40_0%,_transparent_50%)]"
       />
       <div className="absolute top-4 end-4 z-10 flex items-center gap-1">
         <LocaleSwitcher />

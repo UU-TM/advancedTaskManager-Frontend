@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plus-jakarta);
+  --font-sans: var(--font-app-sans, var(--font-plus-jakarta));
   --font-mono: var(--font-jetbrains-mono);
   --color-dashboard-frame: var(--dashboard-frame);
   --color-dashboard-accent: var(--dashboard-accent);
@@ -72,121 +72,121 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Cool violet canvas + vivid iris / rose
-   Surfaces stay neutral; brand carries the color.
+   Ink neutrals + teal brand
+   Cool gray surfaces; teal for focus / flow (not SaaS blue/purple).
    ────────────────────────────────────────────────────────────────── */
 :root {
   --radius: 0.75rem;
 
-  /* Surfaces — cool, slightly violet-tinted (no paper/sepia) */
-  --background: #f3f1f7;
-  --foreground: #2a2640;
+  /* Surfaces — ink slate, slightly warm so it doesn’t feel sterile */
+  --background: #f3f5f4;
+  --foreground: #14201c;
   --card: #ffffff;
-  --card-foreground: #2a2640;
+  --card-foreground: #14201c;
   --popover: #ffffff;
-  --popover-foreground: #2a2640;
+  --popover-foreground: #14201c;
 
-  /* Brand — deep iris primary, punchy rose accent */
-  --primary: #6347a0;
+  /* Brand — deep teal; amber only for warnings / rare emphasis */
+  --primary: #0f766e;
   --primary-foreground: #ffffff;
-  --secondary: #eae6f2;
-  --secondary-foreground: #2a2640;
-  --accent: #b83644;
+  --secondary: #e4ebe8;
+  --secondary-foreground: #14201c;
+  --accent: #c2410c;
   --accent-foreground: #ffffff;
 
   /* Status */
-  --success: #1f7a8a;
+  --success: #15803d;
   --success-foreground: #ffffff;
-  --info: #3d9aa8;
+  --info: #0e7490;
   --info-foreground: #ffffff;
-  --destructive: #c43d5a;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
 
   /* Muted / borders */
-  --muted: #eae6f2;
-  --muted-foreground: #5c5672;
-  --border: #ddd7e8;
-  --input: #ddd7e8;
-  --ring: #6347a0;
+  --muted: #e8eeeb;
+  --muted-foreground: #5b6b64;
+  --border: #d5ded9;
+  --input: #d5ded9;
+  --ring: #0f766e;
 
   /* Charts */
-  --chart-1: #6347a0;
-  --chart-2: #3d9aa8;
-  --chart-3: #b83644;
-  --chart-4: #1f7a8a;
-  --chart-5: #c9892e;
+  --chart-1: #0f766e;
+  --chart-2: #0e7490;
+  --chart-3: #c2410c;
+  --chart-4: #15803d;
+  --chart-5: #64748b;
 
   /* Sidebar */
   --sidebar: #ffffff;
-  --sidebar-foreground: #2a2640;
-  --sidebar-primary: #6347a0;
+  --sidebar-foreground: #14201c;
+  --sidebar-primary: #0f766e;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eae6f2;
-  --sidebar-accent-foreground: #2a2640;
-  --sidebar-border: #ddd7e8;
-  --sidebar-ring: #6347a0;
+  --sidebar-accent: #e8eeeb;
+  --sidebar-accent-foreground: #14201c;
+  --sidebar-border: #d5ded9;
+  --sidebar-ring: #0f766e;
 
   /* Dashboard chrome */
-  --dashboard-frame: #ebe8f2;
-  --dashboard-accent: #6347a0;
+  --dashboard-frame: #e6ece9;
+  --dashboard-accent: #0f766e;
   --dashboard-widget-shadow:
-    0 1px 2px rgba(42, 38, 64, 0.04),
-    0 8px 24px -6px rgba(99, 71, 160, 0.14);
+    0 1px 2px rgba(20, 32, 28, 0.04),
+    0 8px 24px -6px rgba(15, 118, 110, 0.14);
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Deep violet night + luminous iris / rose
+   Deep ink night + luminous teal
    ────────────────────────────────────────────────────────────────── */
 .dark {
   --radius: 0.75rem;
 
-  --background: #14121c;
-  --foreground: #f0eef8;
-  --card: #1c1930;
-  --card-foreground: #f0eef8;
-  --popover: #1c1930;
-  --popover-foreground: #f0eef8;
+  --background: #0c1412;
+  --foreground: #e6eeea;
+  --card: #121c19;
+  --card-foreground: #e6eeea;
+  --popover: #121c19;
+  --popover-foreground: #e6eeea;
 
-  --primary: #c9a0ff;
-  --primary-foreground: #14121c;
-  --secondary: #2a2640;
-  --secondary-foreground: #f0eef8;
-  --accent: #f2a4a0;
-  --accent-foreground: #14121c;
+  --primary: #5eead4;
+  --primary-foreground: #0c1412;
+  --secondary: #1a2824;
+  --secondary-foreground: #e6eeea;
+  --accent: #fb923c;
+  --accent-foreground: #0c1412;
 
-  --success: #3d8fa8;
-  --success-foreground: #14121c;
-  --info: #9ed9e0;
-  --info-foreground: #14121c;
-  --destructive: #f06a8f;
-  --destructive-foreground: #14121c;
+  --success: #4ade80;
+  --success-foreground: #0c1412;
+  --info: #67e8f9;
+  --info-foreground: #0c1412;
+  --destructive: #f87171;
+  --destructive-foreground: #0c1412;
 
-  --muted: #2a2640;
-  --muted-foreground: #a8a3bf;
-  --border: #4a4563;
-  --input: #4a4563;
-  --ring: #c9a0ff;
+  --muted: #1a2824;
+  --muted-foreground: #8fa39a;
+  --border: #2a3b35;
+  --input: #2a3b35;
+  --ring: #5eead4;
 
-  --chart-1: #c9a0ff;
-  --chart-2: #9ed9e0;
-  --chart-3: #f2a4a0;
-  --chart-4: #3d8fa8;
-  --chart-5: #e6c07b;
+  --chart-1: #5eead4;
+  --chart-2: #67e8f9;
+  --chart-3: #fb923c;
+  --chart-4: #4ade80;
+  --chart-5: #94a3b8;
 
-  --sidebar: #1c1930;
-  --sidebar-foreground: #f0eef8;
-  --sidebar-primary: #c9a0ff;
-  --sidebar-primary-foreground: #14121c;
-  --sidebar-accent: #2a2640;
-  --sidebar-accent-foreground: #f0eef8;
-  --sidebar-border: #4a4563;
-  --sidebar-ring: #c9a0ff;
+  --sidebar: #121c19;
+  --sidebar-foreground: #e6eeea;
+  --sidebar-primary: #5eead4;
+  --sidebar-primary-foreground: #0c1412;
+  --sidebar-accent: #1a2824;
+  --sidebar-accent-foreground: #e6eeea;
+  --sidebar-border: #2a3b35;
+  --sidebar-ring: #5eead4;
 
-  --dashboard-frame: #221e36;
-  --dashboard-accent: #c9a0ff;
+  --dashboard-frame: #0c1412;
+  --dashboard-accent: #5eead4;
   --dashboard-widget-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.35),
-    0 10px 28px -8px rgba(201, 160, 255, 0.18);
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 10px 28px -8px rgba(94, 234, 212, 0.14);
 }
 
 @layer base {
@@ -196,6 +196,11 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  /* Persian: Vazirmatn via --font-app-sans; more leading, no tracking */
+  html[lang="fa"] body {
+    line-height: 1.7;
+    letter-spacing: 0;
   }
 }
 

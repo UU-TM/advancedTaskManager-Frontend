@@ -54,7 +54,7 @@ export const INITIAL_BOARD: ColumnData[] = [
         title: "Design System Update",
         description:
           "Audit existing components and create new variants for dark mode.",
-        tags: [{ label: "Design", dotColor: "bg-purple-500" }],
+        tags: [{ label: "Design", dotColor: "bg-teal-500" }],
         priority: "Medium",
         date: "Oct 15",
         comments: 3,

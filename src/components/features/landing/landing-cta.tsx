@@ -24,7 +24,7 @@ export function LandingCta() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,_#6347a033_0%,_transparent_60%),radial-gradient(ellipse_40%_50%_at_20%_80%,_#b8364422_0%,_transparent_55%)] dark:bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,_#c9a0ff28_0%,_transparent_60%),radial-gradient(ellipse_40%_50%_at_20%_80%,_#f2a4a022_0%,_transparent_55%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,_#0f766e33_0%,_transparent_60%),radial-gradient(ellipse_40%_50%_at_20%_80%,_#c2410c22_0%,_transparent_55%)] dark:bg-[radial-gradient(ellipse_60%_80%_at_80%_50%,_#5eead428_0%,_transparent_60%),radial-gradient(ellipse_40%_50%_at_20%_80%,_#fb923c22_0%,_transparent_55%)]"
         />
         <div className="relative z-10 mx-auto max-w-xl">
           <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">

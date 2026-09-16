@@ -16,7 +16,7 @@ const TILE = [
   "from-primary/25 to-primary/5",
   "from-accent/25 to-accent/5",
   "from-info/25 to-info/5",
-  "from-violet-500/25 to-violet-500/5",
+  "from-teal-500/25 to-teal-500/5",
   "from-amber-500/25 to-amber-500/5",
   "from-success/25 to-success/5",
 ];

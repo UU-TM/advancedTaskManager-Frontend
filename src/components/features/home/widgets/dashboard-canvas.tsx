@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   ReactGridLayout,
   type Layout,
@@ -142,6 +142,8 @@ function findPlacement(
 
 export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
+  const isRtl = locale === "fa";
   const safe = useMotionSafe();
   const isMdUp = useIsMdUp();
   const { user, isLoading: authLoading } = useAuth();
@@ -227,7 +229,7 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
     ro.observe(el);
     setWidth(el.clientWidth);
     return () => ro.disconnect();
-  }, []);
+  }, [isRtl]);
 
   const rglLayout = useMemo(() => toRgl(layout), [layout]);
 
@@ -412,6 +414,7 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
             "h-full overflow-hidden rounded-2xl",
             editable && "pt-7",
           )}
+          dir={isRtl ? "rtl" : "ltr"}
         >
           <div className="h-full [&_>section]:h-full">
             <Comp />
@@ -435,15 +438,16 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
 
       <div
         ref={containerRef}
+        dir="ltr"
         className={cn(
-          "relative min-h-0 flex-1 overflow-auto px-4 pb-24 md:px-6",
+          "relative min-h-0 w-full flex-1 overflow-auto px-4 pb-24 md:px-6",
           editing && isMdUp && "bg-muted/20 transition-colors duration-300",
         )}
         aria-live="polite"
         aria-label={effectiveEditing ? t("editMode.editing") : undefined}
       >
         {isLoading && layout.length === 0 ? (
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-12 gap-4" dir={isRtl ? "rtl" : "ltr"}>
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
@@ -452,7 +456,10 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
             ))}
           </div>
         ) : !isMdUp ? (
-          <div className="flex flex-col gap-4 pb-4">
+          <div
+            className="flex flex-col gap-4 pb-4"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
             <p className="text-sm text-muted-foreground">
               {t("editMode.mobileHint")}
             </p>
@@ -460,7 +467,7 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
           </div>
         ) : (
           <ReactGridLayout
-            className={cn("layout", effectiveEditing && "editing")}
+            className={cn("layout w-full", effectiveEditing && "editing")}
             layout={rglLayout}
             cols={COLS}
             rowHeight={ROW_HEIGHT}

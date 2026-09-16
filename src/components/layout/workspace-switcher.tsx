@@ -26,7 +26,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-export function WorkspaceSwitcher() {
+type WorkspaceSwitcherProps = {
+  onInteractionLockChange?: (locked: boolean) => void;
+  className?: string;
+  triggerClassName?: string;
+  rtl?: boolean;
+};
+
+export function WorkspaceSwitcher({
+  onInteractionLockChange,
+  className,
+  triggerClassName,
+  rtl = false,
+}: WorkspaceSwitcherProps) {
   const t = useTranslations("workspace");
   const {
     workspace,
@@ -35,14 +47,18 @@ export function WorkspaceSwitcher() {
     createWorkspace,
     isLoading,
   } = useActiveWorkspace();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-  // TanStack Query isLoading differs on SSR vs client; gate until mount.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    onInteractionLockChange?.(menuOpen || createOpen);
+  }, [menuOpen, createOpen, onInteractionLockChange]);
 
   async function handleCreate() {
     const trimmed = name.trim();
@@ -61,22 +77,36 @@ export function WorkspaceSwitcher() {
   }
 
   return (
-    <>
-      <DropdownMenu>
+    <div className={className}>
+      <DropdownMenu modal={false} open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-10 w-full justify-between rounded-xl px-3 font-medium"
+            className={cn(
+              "h-10 w-full gap-2 rounded-xl px-3 font-medium",
+              rtl ? "flex-row-reverse" : "flex-row",
+              triggerClassName,
+            )}
             disabled={mounted && isLoading && !workspace}
           >
-            <span className="truncate">
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate",
+                rtl ? "text-right" : "text-left",
+              )}
+            >
               {mounted ? (workspace?.name ?? t("loading")) : t("loading")}
             </span>
             <ChevronsUpDown className="size-3.5 shrink-0 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel>{t("switcherLabel")}</DropdownMenuLabel>
+        <DropdownMenuContent
+          align={rtl ? "end" : "start"}
+          className="w-56"
+        >
+          <DropdownMenuLabel className={rtl ? "text-right" : undefined}>
+            {t("switcherLabel")}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {workspaces.map((w) => (
             <DropdownMenuItem
@@ -84,22 +114,39 @@ export function WorkspaceSwitcher() {
               onClick={() => setWorkspaceId(w.id)}
               className={cn(
                 "flex items-center gap-2",
+                rtl && "flex-row-reverse",
                 w.id === workspace?.id && "bg-muted",
               )}
             >
-              <span className="min-w-0 flex-1 truncate">{w.name}</span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate",
+                  rtl ? "text-right" : "text-left",
+                )}
+              >
+                {w.name}
+              </span>
               {w.id === workspace?.id && (
                 <Check className="size-3.5 shrink-0 text-primary" />
               )}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setCreateOpen(true)}>
+          <DropdownMenuItem
+            onClick={() => setCreateOpen(true)}
+            className={cn("flex items-center gap-2", rtl && "flex-row-reverse")}
+          >
             <Plus className="size-3.5" />
             {t("create")}
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/workspace">
+            <Link
+              href="/workspace"
+              className={cn(
+                "flex items-center gap-2",
+                rtl && "flex-row-reverse",
+              )}
+            >
               <Settings2 className="size-3.5" />
               {t("manage")}
             </Link>
@@ -108,7 +155,7 @@ export function WorkspaceSwitcher() {
       </DropdownMenu>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" dir={rtl ? "rtl" : "ltr"}>
           <DialogHeader>
             <DialogTitle>{t("createTitle")}</DialogTitle>
           </DialogHeader>
@@ -119,12 +166,13 @@ export function WorkspaceSwitcher() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("namePlaceholder")}
+              className={rtl ? "text-right" : undefined}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void handleCreate();
               }}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className={rtl ? "flex-row-reverse sm:flex-row-reverse" : undefined}>
             <Button
               variant="outline"
               onClick={() => setCreateOpen(false)}
@@ -141,6 +189,6 @@ export function WorkspaceSwitcher() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

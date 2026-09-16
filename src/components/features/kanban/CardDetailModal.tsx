@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Calendar,
   Check,
   CheckSquare,
+  Eye,
+  EyeOff,
+  GitBranch,
+  Link2,
   MessageSquare,
   Paperclip,
+  Pencil,
+  Sparkles,
+  Timer,
   Trash2,
   Upload,
   X,
@@ -54,12 +61,28 @@ import {
   useCreateLabel,
   useToggleCardLabel,
 } from "@/hooks/use-kanban-extras";
+import {
+  useActiveTimeEntry,
+  useStartTimeEntry,
+  useStopTimeEntry,
+} from "@/hooks/use-time-entries";
+import {
+  useCardDependencies,
+  useCreateDependency,
+  useRemoveDependency,
+} from "@/hooks/use-dependencies";
+import { useColumns } from "@/hooks/use-columns";
+import { useCardWatchers, useToggleWatch } from "@/hooks/use-watchers";
+import { useCommentReactions } from "@/hooks/use-reactions";
+import { useSummarizeCard } from "@/hooks/use-ai";
 import { cardsApi, attachmentsApi } from "@/lib/api";
 import { formatAppDate } from "@/lib/date";
 import type { Locale } from "@/i18n/config";
 import { PRIORITY_COLORS, LABEL_PRESET_COLORS } from "./priority";
-import type { CardPriority } from "@/types/domain";
+import type { CardPriority, CardRecurrence } from "@/types/domain";
 import { cn } from "@/lib/utils";
+import { CardGithubSection } from "./CardGithubSection";
+import { useAuth } from "@/hooks/use-auth";
 
 type CardDetailModalProps = {
   cardId: string | null;
@@ -139,6 +162,7 @@ export function CardDetailModal({
   const tCommon = useTranslations("common");
   const locale = useLocale() as Locale;
   const reduce = useReducedMotion();
+  const { user } = useAuth();
   const { data: card, isLoading } = useCard(cardId ?? undefined);
   const updateCard = useUpdateCard();
   const assignCard = useAssignCard();
@@ -150,22 +174,49 @@ export function CardDetailModal({
   const { data: comments = [] } = useComments(cardId ?? undefined);
   const { data: attachments = [] } = useAttachments(cardId ?? undefined);
   const { data: activity = [] } = useCardActivity(cardId ?? undefined);
+  const { data: deps = [] } = useCardDependencies(cardId ?? undefined);
+  const { data: columns = [] } = useColumns(boardId);
+  const createDep = useCreateDependency();
+  const removeDep = useRemoveDependency();
+  const { data: activeTimer } = useActiveTimeEntry();
+  const startTimer = useStartTimeEntry();
+  const stopTimer = useStopTimeEntry();
 
   const createLabel = useCreateLabel(boardId);
   const toggleLabel = useToggleCardLabel(cardId ?? "", card?.columnId);
   const checklistMut = useChecklistMutations(cardId ?? "");
   const commentMut = useCommentMutations(cardId ?? "");
   const attachmentMut = useAttachmentMutations(cardId ?? "", card?.columnId);
+  const { data: watchers } = useCardWatchers(cardId ?? undefined);
+  const toggleWatch = useToggleWatch(cardId ?? "");
+  const reactions = useCommentReactions(cardId ?? "");
+  const summarizeCard = useSummarizeCard();
+  const tAi = useTranslations("ai");
+  const tWatch = useTranslations("watch");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentBody, setEditingCommentBody] = useState("");
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
   const [newLabelName, setNewLabelName] = useState("");
+  const [blockerPick, setBlockerPick] = useState("");
   const [itemDrafts, setItemDrafts] = useState<Record<string, string>>({});
   const [hydratedId, setHydratedId] = useState<string | null>(null);
   const [pulseKey, setPulseKey] = useState<string | null>(null);
   const [celebrateListId, setCelebrateListId] = useState<string | null>(null);
+
+  const boardCards = useMemo(
+    () =>
+      columns.flatMap((c) =>
+        (c.cards ?? []).map((cardRow) => ({
+          id: cardRow.id,
+          title: cardRow.title,
+        })),
+      ),
+    [columns],
+  );
 
   function reward(key: string) {
     setPulseKey(key);
@@ -627,16 +678,124 @@ export function CardDetailModal({
                           <span className="text-xs font-medium">
                             {c.author.username}
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-6"
-                            onClick={() => commentMut.remove.mutate(c.id)}
-                          >
-                            <Trash2 className="size-3" />
-                          </Button>
+                          <div className="flex items-center gap-0.5">
+                            {user?.id === c.authorId && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-6"
+                                onClick={() => {
+                                  setEditingCommentId(c.id);
+                                  setEditingCommentBody(c.body);
+                                }}
+                              >
+                                <Pencil className="size-3" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-6"
+                              onClick={() => commentMut.remove.mutate(c.id)}
+                            >
+                              <Trash2 className="size-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{c.body}</p>
+                        {editingCommentId === c.id ? (
+                          <form
+                            className="mt-1 flex gap-2"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              if (!editingCommentBody.trim()) return;
+                              commentMut.update.mutate(
+                                {
+                                  id: c.id,
+                                  body: editingCommentBody.trim(),
+                                },
+                                {
+                                  onSuccess: () => setEditingCommentId(null),
+                                  onError: () =>
+                                    toast.error(t("failedComment")),
+                                },
+                              );
+                            }}
+                          >
+                            <Input
+                              value={editingCommentBody}
+                              onChange={(e) =>
+                                setEditingCommentBody(e.target.value)
+                              }
+                              className="h-8"
+                            />
+                            <Button type="submit" size="sm">
+                              Save
+                            </Button>
+                          </form>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">
+                            {c.body.split(/(@[a-zA-Z0-9_]+)/g).map((part, i) =>
+                              part.startsWith("@") ? (
+                                <span
+                                  key={i}
+                                  className="font-medium text-primary"
+                                >
+                                  {part}
+                                </span>
+                              ) : (
+                                <span key={i}>{part}</span>
+                              ),
+                            )}
+                          </p>
+                        )}
+                        <div className="mt-2 flex flex-wrap items-center gap-1">
+                          {(c.reactions ?? []).map((r) => {
+                            const mine = r.users.some((u) => u.id === user?.id);
+                            return (
+                              <button
+                                key={r.emoji}
+                                type="button"
+                                className={cn(
+                                  "inline-flex cursor-pointer items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors",
+                                  mine
+                                    ? "border-primary/40 bg-primary/10"
+                                    : "border-border bg-background hover:bg-muted",
+                                )}
+                                onClick={() => {
+                                  if (mine) {
+                                    reactions.remove.mutate({
+                                      commentId: c.id,
+                                      emoji: r.emoji,
+                                    });
+                                  } else {
+                                    reactions.add.mutate({
+                                      commentId: c.id,
+                                      emoji: r.emoji,
+                                    });
+                                  }
+                                }}
+                              >
+                                <span>{r.emoji}</span>
+                                <span>{r.count}</span>
+                              </button>
+                            );
+                          })}
+                          {["👍", "🎉", "👀", "❤️"].map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              className="cursor-pointer rounded-full px-1 text-xs opacity-50 hover:opacity-100"
+                              onClick={() =>
+                                reactions.add.mutate({
+                                  commentId: c.id,
+                                  emoji,
+                                })
+                              }
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </motion.li>
                   ))}
@@ -699,6 +858,52 @@ export function CardDetailModal({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25, delay: 0.06 }}
             >
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer justify-start"
+                  disabled={!cardId || toggleWatch.isPending}
+                  onClick={() =>
+                    toggleWatch.mutate(!!watchers?.watching, {
+                      onSuccess: () =>
+                        toast.success(
+                          watchers?.watching
+                            ? tWatch("unwatched")
+                            : tWatch("watched"),
+                        ),
+                      onError: () => toast.error(tWatch("failed")),
+                    })
+                  }
+                >
+                  {watchers?.watching ? (
+                    <EyeOff className="me-1.5 size-3.5" />
+                  ) : (
+                    <Eye className="me-1.5 size-3.5" />
+                  )}
+                  {watchers?.watching ? tWatch("unwatch") : tWatch("watch")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer justify-start"
+                  disabled={!cardId || summarizeCard.isPending}
+                  onClick={() => {
+                    if (!cardId) return;
+                    summarizeCard.mutate(cardId, {
+                      onSuccess: (res) =>
+                        toast.message(tAi("cardSummary"), {
+                          description: res.summary,
+                        }),
+                      onError: () => toast.error(tAi("summaryFailed")),
+                    });
+                  }}
+                >
+                  <Sparkles className="me-1.5 size-3.5" />
+                  {tAi("summarize")}
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">{t("assignees")}</Label>
                 <div className="space-y-1.5">
@@ -831,6 +1036,176 @@ export function CardDetailModal({
                   }}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="size-3" /> Start
+                </Label>
+                <ShamsiDatePicker
+                  value={card?.startDate}
+                  onChange={(startDate) => {
+                    if (!cardId) return;
+                    updateCard.mutate({ id: cardId, input: { startDate } });
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Estimate (min)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  className="h-9"
+                  defaultValue={card?.estimateMinutes ?? ""}
+                  key={`est-${card?.id}-${card?.estimateMinutes ?? ""}`}
+                  onBlur={(e) => {
+                    if (!cardId) return;
+                    const raw = e.target.value.trim();
+                    const next = raw === "" ? null : Number.parseInt(raw, 10);
+                    if (next === card?.estimateMinutes) return;
+                    if (next !== null && !Number.isFinite(next)) return;
+                    updateCard.mutate({
+                      id: cardId,
+                      input: { estimateMinutes: next },
+                    });
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Recurrence</Label>
+                <Select
+                  value={card?.recurrence ?? "NONE"}
+                  onValueChange={(v) => {
+                    if (!cardId) return;
+                    updateCard.mutate({
+                      id: cardId,
+                      input: { recurrence: v as CardRecurrence },
+                    });
+                  }}
+                >
+                  <SelectTrigger className="h-9 cursor-pointer">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["NONE", "DAILY", "WEEKLY", "MONTHLY"] as const).map(
+                      (r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Timer className="size-3" /> Timer
+                </Label>
+                {activeTimer?.cardId === cardId ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    onClick={() =>
+                      stopTimer.mutate(undefined, {
+                        onSuccess: () => toast.success("Timer stopped"),
+                      })
+                    }
+                  >
+                    Stop timer
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    disabled={!cardId || !!activeTimer}
+                    onClick={() =>
+                      startTimer.mutate(cardId!, {
+                        onSuccess: () => toast.success("Timer started"),
+                        onError: () => toast.error("Could not start timer"),
+                      })
+                    }
+                  >
+                    Start on card
+                  </Button>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Link2 className="size-3" /> Blocked by
+                </Label>
+                <ul className="space-y-1 text-xs">
+                  {deps
+                    .filter((d) => d.blockedId === cardId)
+                    .map((d) => (
+                      <li
+                        key={d.id}
+                        className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1"
+                      >
+                        <span className="truncate">{d.blockerTitle}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          onClick={() => removeDep.mutate(d.id)}
+                        >
+                          <X className="size-3" />
+                        </Button>
+                      </li>
+                    ))}
+                </ul>
+                <div className="flex gap-1">
+                  <Select value={blockerPick} onValueChange={setBlockerPick}>
+                    <SelectTrigger className="h-8 cursor-pointer">
+                      <SelectValue placeholder="Add blocker" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {boardCards
+                        .filter((c) => c.id !== cardId)
+                        .map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.title}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className="cursor-pointer"
+                    disabled={!blockerPick || !cardId}
+                    onClick={() => {
+                      createDep.mutate(
+                        { blockerId: blockerPick, blockedId: cardId! },
+                        {
+                          onSuccess: () => setBlockerPick(""),
+                          onError: () =>
+                            toast.error("Could not add dependency"),
+                        },
+                      );
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              {cardId && card && (
+                <div className="space-y-2">
+                  <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <GitBranch className="size-3" /> GitHub
+                  </Label>
+                  <CardGithubSection
+                    cardId={cardId}
+                    boardId={boardId}
+                    cardTitle={card.title}
+                    cardDescription={card.description}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">

@@ -13,6 +13,13 @@ export const commentsApi = {
     });
   },
 
+  update(id: string, body: string) {
+    return apiFetch<Comment>(`/comments/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ body }),
+    });
+  },
+
   remove(id: string) {
     return apiFetch<void>(`/comments/${id}`, { method: "DELETE" });
   },

@@ -50,12 +50,30 @@ import { ArrowLeft } from "lucide-react";
 
 type BoardKanbanProps = {
   boardId: string;
+  hideChrome?: boolean;
+  filteredColumns?: BoardColumn[];
+  isLoadingColumns?: boolean;
+  openCardId?: string | null;
+  onOpenCardChange?: (id: string | null) => void;
 };
 
-export function BoardKanban({ boardId }: BoardKanbanProps) {
+export function BoardKanban({
+  boardId,
+  hideChrome = false,
+  filteredColumns,
+  isLoadingColumns,
+  openCardId: controlledOpenCardId,
+  onOpenCardChange,
+}: BoardKanbanProps) {
   const t = useTranslations("kanban");
   const { data: board } = useBoard(boardId);
-  const { data: columns = [], isLoading, isError } = useColumns(boardId);
+  const {
+    data: fetchedColumns = [],
+    isLoading: fetching,
+    isError,
+  } = useColumns(boardId);
+  const columns = filteredColumns ?? fetchedColumns;
+  const isLoading = isLoadingColumns ?? fetching;
 
   const moveCard = useMoveCard();
   const archiveCard = useArchiveCard();
@@ -68,8 +86,16 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
 
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [activeColumn, setActiveColumn] = useState<BoardColumn | null>(null);
-  const [openCardId, setOpenCardId] = useState<string | null>(null);
+  const [internalOpenCardId, setInternalOpenCardId] = useState<string | null>(
+    null,
+  );
   const [membersOpen, setMembersOpen] = useState(false);
+
+  const openCardId =
+    controlledOpenCardId !== undefined
+      ? controlledOpenCardId
+      : internalOpenCardId;
+  const setOpenCardId = onOpenCardChange ?? setInternalOpenCardId;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -199,7 +225,14 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-3rem)] flex-col">
+    <div
+      className={
+        hideChrome
+          ? "flex h-full flex-col"
+          : "flex h-[calc(100dvh-3rem)] flex-col"
+      }
+    >
+      {!hideChrome && (
       <header className="flex shrink-0 items-center gap-3 border-b border-border/80 bg-background/90 px-4 py-2.5 backdrop-blur-sm md:px-6">
         <Button asChild variant="ghost" size="sm" className="cursor-pointer">
           <Link href="/boards">
@@ -224,6 +257,7 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
           </Button>
         </div>
       </header>
+      )}
 
       <div className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30 p-4 md:p-6">
         {isLoading && <KanbanColumnSkeleton />}
@@ -375,12 +409,14 @@ export function BoardKanban({ boardId }: BoardKanbanProps) {
         }}
       />
 
+      {!hideChrome && (
       <BoardMembersDialog
         boardId={boardId}
         workspaceId={board?.workspaceId}
         open={membersOpen}
         onOpenChange={setMembersOpen}
       />
+      )}
     </div>
   );
 }

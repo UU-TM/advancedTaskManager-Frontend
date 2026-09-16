@@ -130,7 +130,7 @@ export function LandingHero() {
     <section className="relative overflow-hidden px-5 pb-16 pt-12 md:px-8 md:pb-24 md:pt-20">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,_#c4b0eb55_0%,_transparent_55%),radial-gradient(ellipse_50%_40%_at_80%_20%,_#f2a4a033_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,_#6347a055_0%,_transparent_55%),radial-gradient(ellipse_50%_40%_at_80%_20%,_#b8364433_0%,_transparent_50%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,_#99f6e455_0%,_transparent_55%),radial-gradient(ellipse_50%_40%_at_80%_20%,_#fdba7433_0%,_transparent_50%)] dark:bg-[radial-gradient(ellipse_70%_50%_at_50%_-5%,_#0f766e55_0%,_transparent_55%),radial-gradient(ellipse_50%_40%_at_80%_20%,_#c2410c33_0%,_transparent_50%)]"
       />
 
       {/* Floating product peeks */}

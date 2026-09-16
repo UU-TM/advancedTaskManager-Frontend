@@ -5,12 +5,17 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { useBoards } from "@/hooks/use-boards";
 import { useActiveWorkspace } from "@/components/layout/active-workspace-context";
-import { useFavoriteBoards } from "@/hooks/use-favorite-boards";
+import {
+  useStarBoard,
+  useStarredBoards,
+  useUnstarBoard,
+} from "@/hooks/use-home";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/page-header";
 import { BoardCard } from "./board-card";
 import { CreateBoardDialog } from "./create-board-dialog";
+import { useMemo } from "react";
 
 function BoardsSkeleton() {
   return (
@@ -49,7 +54,14 @@ export function BoardsPageView() {
     isError: boardsError,
     error: boardsErr,
   } = useBoards(workspaceId);
-  const { isFavorite, toggleFavorite } = useFavoriteBoards();
+  const { data: starred = [] } = useStarredBoards();
+  const star = useStarBoard();
+  const unstar = useUnstarBoard();
+
+  const starredIds = useMemo(
+    () => new Set(starred.map((b) => b.id)),
+    [starred],
+  );
 
   const loading = workspaceLoading || (!!workspaceId && boardsLoading);
   const errorMessage =
@@ -66,7 +78,11 @@ export function BoardsPageView() {
       <PageHeader
         title={t("title")}
         description={t("subtitle")}
-        actions={workspaceId ? <CreateBoardDialog workspaceId={workspaceId} /> : undefined}
+        actions={
+          workspaceId ? (
+            <CreateBoardDialog workspaceId={workspaceId} />
+          ) : undefined
+        }
       />
 
       {errorMessage && (
@@ -100,8 +116,11 @@ export function BoardsPageView() {
             <BoardCard
               key={board.id}
               board={board}
-              favorite={isFavorite(board.id)}
-              onToggleFavorite={toggleFavorite}
+              favorite={starredIds.has(board.id)}
+              onToggleFavorite={(id) => {
+                if (starredIds.has(id)) unstar.mutate(id);
+                else star.mutate(id);
+              }}
               member={user}
               index={index}
             />

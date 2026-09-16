@@ -87,14 +87,105 @@ export interface Card {
   assignees?: CardAssignee[];
   labels?: Label[];
   dueDate?: string | null;
+  startDate?: string | null;
+  estimateMinutes?: number | null;
+  recurrence?: CardRecurrence;
+  recurrenceUntil?: string | null;
   archivedAt?: string | null;
   coverColor?: string | null;
   coverAttachmentId?: string | null;
+  blockers?: CardDependencyRef[];
+  blocked?: CardDependencyRef[];
+  isBlocked?: boolean;
+  timeSpentMs?: number;
   _count?: CardCounts;
   createdAt: string;
   updatedAt?: string;
   /** @deprecated FE-only; backend does not return boardId on card */
   boardId?: string;
+}
+
+export type CardRecurrence = "NONE" | "DAILY" | "WEEKLY" | "MONTHLY";
+export type BoardViewMode = "KANBAN" | "TABLE" | "CALENDAR" | "TIMELINE";
+
+export interface CardDependencyRef {
+  id: string;
+  title: string;
+  archivedAt: string | null;
+}
+
+export interface CardDependency {
+  id: string;
+  blockerId: string;
+  blockedId: string;
+  blockerTitle: string;
+  blockedTitle: string;
+  createdAt: string;
+}
+
+export interface WorkCard {
+  id: string;
+  title: string;
+  dueDate: string | null;
+  startDate: string | null;
+  priority: CardPriority | null;
+  boardId: string;
+  boardName: string;
+  columnId: string;
+  columnTitle: string;
+  archivedAt: string | null;
+  isBlocked: boolean;
+  estimateMinutes: number | null;
+  assignees: { id: string; username: string }[];
+}
+
+export interface MyWorkInbox {
+  assigned: WorkCard[];
+  mentioned: WorkCard[];
+  dueSoon: WorkCard[];
+  overdue: WorkCard[];
+  blocked: WorkCard[];
+}
+
+export interface BoardViewPrefs {
+  boardId: string;
+  viewMode: BoardViewMode;
+  filters: Record<string, unknown> | null;
+  updatedAt: string;
+}
+
+export interface BoardAutomation {
+  id: string;
+  boardId: string;
+  name: string;
+  enabled: boolean;
+  trigger: {
+    type:
+      | "CARD_MOVED"
+      | "CARD_ASSIGNED"
+      | "DUE_SOON"
+      | "CHECKLIST_COMPLETE"
+      | "GITHUB_PR_MERGED";
+    columnId?: string;
+    hoursBeforeDue?: number;
+  };
+  conditions: Record<string, unknown> | null;
+  actions: Array<{
+    type:
+      | "MOVE_TO_COLUMN"
+      | "ADD_LABEL"
+      | "ASSIGN_USER"
+      | "SET_DUE_DAYS"
+      | "NOTIFY"
+      | "CREATE_REMINDER";
+    columnId?: string;
+    labelId?: string;
+    userId?: string;
+    days?: number;
+    message?: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Board {
@@ -165,12 +256,20 @@ export interface Checklist {
   items: ChecklistItem[];
 }
 
+export interface CommentReactionSummary {
+  emoji: string;
+  count: number;
+  users: User[];
+}
+
 export interface Comment {
   id: string;
   cardId: string;
   authorId: string;
   author: User;
   body: string;
+  mentions?: User[];
+  reactions?: CommentReactionSummary[];
   createdAt: string;
   updatedAt: string;
 }
@@ -328,6 +427,8 @@ export type TimeEntryStatus = "RUNNING" | "PAUSED" | "STOPPED";
 
 export interface TimeEntry {
   id: string;
+  cardId?: string | null;
+  boardId?: string | null;
   startedAt: string;
   endedAt: string | null;
   pausedAt: string | null;
