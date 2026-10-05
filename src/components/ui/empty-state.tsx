@@ -1,5 +1,9 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function EmptyState({
@@ -8,30 +12,51 @@ export function EmptyState({
   description,
   action,
   className,
+  variant = "default",
+  onRetry,
 }: {
   icon?: LucideIcon;
   title: string;
   description?: string;
   action?: ReactNode;
   className?: string;
+  variant?: "default" | "error";
+  onRetry?: () => void;
 }) {
+  const t = useTranslations("common");
   return (
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-2 py-6 text-center",
+        variant === "error" && "text-destructive",
         className,
       )}
+      role={variant === "error" ? "alert" : undefined}
     >
       {Icon && (
-        <div className="flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <div
+          className={cn(
+            "flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground",
+            variant === "error" && "bg-destructive/10 text-destructive",
+          )}
+        >
           <Icon className="size-5" aria-hidden />
         </div>
       )}
-      <p className="text-sm font-medium text-foreground">{title}</p>
+      <h3 className="text-sm font-medium text-foreground">{title}</h3>
       {description && (
         <p className="max-w-xs text-sm text-muted-foreground">{description}</p>
       )}
-      {action && <div className="mt-2">{action}</div>}
+      {(action || onRetry) && (
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          {onRetry && (
+            <Button variant="outline" size="sm" onClick={onRetry}>
+              {t("retry")}
+            </Button>
+          )}
+          {action}
+        </div>
+      )}
     </div>
   );
 }

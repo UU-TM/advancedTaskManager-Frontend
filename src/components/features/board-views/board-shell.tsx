@@ -9,11 +9,10 @@ import {
   CalendarDays,
   Columns3,
   GanttChart,
-  Sparkles,
+  ListChecks,
   Table2,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,8 +41,8 @@ import {
 } from "@/hooks/use-board-view-prefs";
 import { useBoardDependencies } from "@/hooks/use-dependencies";
 import { useBoardEvents } from "@/hooks/use-board-events";
-import { useSummarizeBoard } from "@/hooks/use-ai";
 import type { BoardViewMode } from "@/types/domain";
+import { BoardBriefDialog } from "./board-brief";
 import { cn } from "@/lib/utils";
 
 const VIEW_ORDER: BoardViewMode[] = [
@@ -70,18 +69,20 @@ export function BoardShell({ boardId }: BoardShellProps) {
   const updatePrefs = useUpdateBoardViewPrefs(boardId);
   const { data: dependencies = [] } = useBoardDependencies(boardId);
   useBoardEvents(boardId);
-  const summarizeBoard = useSummarizeBoard();
-  const tAi = useTranslations("ai");
+  const tBrief = useTranslations("brief");
 
   const [viewMode, setViewMode] = useState<BoardViewMode>("KANBAN");
   const [filters, setFilters] = useState<BoardFilters>({});
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
 
   useEffect(() => {
-    if (prefs?.viewMode) setViewMode(prefs.viewMode);
+    const fromUrl = searchParams.get("view") as BoardViewMode | null;
+    if (fromUrl && VIEW_ORDER.includes(fromUrl)) setViewMode(fromUrl);
+    else if (prefs?.viewMode) setViewMode(prefs.viewMode);
     if (prefs?.filters) setFilters(prefs.filters as BoardFilters);
-  }, [prefs]);
+  }, [prefs, searchParams]);
 
   useEffect(() => {
     const card = searchParams.get("card");
@@ -112,6 +113,9 @@ export function BoardShell({ boardId }: BoardShellProps) {
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if ((e.target as HTMLElement).isContentEditable) return;
+      if (document.querySelector("[role='dialog']")) return;
       if (e.key >= "1" && e.key <= "4") {
         const next = VIEW_ORDER[Number(e.key) - 1];
         setViewMode(next);
@@ -142,25 +146,31 @@ export function BoardShell({ boardId }: BoardShellProps) {
             const mode = v as BoardViewMode;
             setViewMode(mode);
             updatePrefs.mutate({ viewMode: mode });
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("view", mode);
+            const qs = params.toString();
+            router.replace(qs ? `/boards/${boardId}?${qs}` : `/boards/${boardId}`, {
+              scroll: false,
+            });
           }}
           className="ms-2"
         >
           <TabsList className="h-8">
             <TabsTrigger value="KANBAN" className="cursor-pointer gap-1.5 px-2.5 text-xs">
               <Columns3 className="size-3.5" />
-              <span className="hidden sm:inline">{tViews("kanban")}</span>
+              <span className="sr-only sm:not-sr-only sm:inline">{tViews("kanban")}</span>
             </TabsTrigger>
             <TabsTrigger value="TABLE" className="cursor-pointer gap-1.5 px-2.5 text-xs">
               <Table2 className="size-3.5" />
-              <span className="hidden sm:inline">{tViews("table")}</span>
+              <span className="sr-only sm:not-sr-only sm:inline">{tViews("table")}</span>
             </TabsTrigger>
             <TabsTrigger value="CALENDAR" className="cursor-pointer gap-1.5 px-2.5 text-xs">
               <CalendarDays className="size-3.5" />
-              <span className="hidden sm:inline">{tViews("calendar")}</span>
+              <span className="sr-only sm:not-sr-only sm:inline">{tViews("calendar")}</span>
             </TabsTrigger>
             <TabsTrigger value="TIMELINE" className="cursor-pointer gap-1.5 px-2.5 text-xs">
               <GanttChart className="size-3.5" />
-              <span className="hidden sm:inline">{tViews("timeline")}</span>
+              <span className="sr-only sm:not-sr-only sm:inline">{tViews("timeline")}</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -181,18 +191,13 @@ export function BoardShell({ boardId }: BoardShellProps) {
           />
           <Button
             variant="outline"
-            size="sm"
+            size="icon-sm"
             className="cursor-pointer"
-            disabled={summarizeBoard.isPending}
-            onClick={() =>
-              summarizeBoard.mutate(boardId, {
-                onSuccess: (res) => toast.message(tAi("boardSummary"), { description: res.summary }),
-                onError: () => toast.error(tAi("summaryFailed")),
-              })
-            }
+            aria-label={tBrief("boardTitle")}
+            title={tBrief("boardTitle")}
+            onClick={() => setBriefOpen(true)}
           >
-            <Sparkles className="me-2 size-4" />
-            {tAi("summarize")}
+            <ListChecks className="size-4" />
           </Button>
           <BoardShareDialog boardId={boardId} />
           <AutomationsSheet boardId={boardId} columns={columns} />
@@ -200,12 +205,13 @@ export function BoardShell({ boardId }: BoardShellProps) {
           {board && <BoardManageMenu board={board} />}
           <Button
             variant="outline"
-            size="sm"
+            size="icon-sm"
             className="cursor-pointer"
+            aria-label={t("members")}
+            title={t("members")}
             onClick={() => setMembersOpen(true)}
           >
-            <Users className="me-2 size-4" />
-            {t("members")}
+            <Users className="size-4" />
           </Button>
         </div>
       </header>
@@ -214,7 +220,6 @@ export function BoardShell({ boardId }: BoardShellProps) {
         {viewMode === "KANBAN" && (
           <BoardKanban
             boardId={boardId}
-            hideChrome
             filteredColumns={filteredColumns}
             isLoadingColumns={isLoading}
             openCardId={openCardId}
@@ -253,6 +258,13 @@ export function BoardShell({ boardId }: BoardShellProps) {
           }}
         />
       )}
+
+      <BoardBriefDialog
+        boardId={boardId}
+        open={briefOpen}
+        onOpenChange={setBriefOpen}
+        onOpenCard={setOpenCard}
+      />
 
       <BoardMembersDialog
         boardId={boardId}

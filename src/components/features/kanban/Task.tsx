@@ -1,20 +1,23 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  MessageSquare,
-  Paperclip,
-  Calendar,
-} from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatAppDate } from "@/lib/date";
-import { playCrumplePaper } from "@/lib/crumple-paper";
-import type { Locale } from "@/i18n/config";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import type { Card, BoardColumn } from "@/types/domain";
-import { PRIORITY_COLORS } from "./priority";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -25,7 +28,8 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { TaskCardBody } from "./TaskCardBody";
 
 type TaskProps = {
   card: Card;
@@ -46,11 +50,41 @@ export function Task({
   onCopy,
   onMoveTo,
 }: TaskProps) {
+  const pending = card.id.startsWith("temp-");
+  if (pending) {
+    return (
+      <div className="pointer-events-none rounded-lg border border-border bg-card text-sm opacity-60 shadow-[var(--shadow-xs)]">
+        <TaskCardBody card={card} />
+      </div>
+    );
+  }
+
+  return (
+    <TaskCard
+      card={card}
+      columns={columns}
+      onOpen={onOpen}
+      onArchive={onArchive}
+      onDelete={onDelete}
+      onCopy={onCopy}
+      onMoveTo={onMoveTo}
+    />
+  );
+}
+
+function TaskCard({
+  card,
+  columns,
+  onOpen,
+  onArchive,
+  onDelete,
+  onCopy,
+  onMoveTo,
+}: TaskProps) {
   const t = useTranslations("kanban");
-  const tCard = useTranslations("card");
-  const locale = useLocale() as Locale;
   const cardElRef = useRef<HTMLDivElement | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const {
     attributes,
     listeners,
@@ -81,12 +115,14 @@ export function Task({
         return;
       }
       setIsRemoving(true);
-      void playCrumplePaper(el, {
-        onComplete: () => action(card),
-      }).catch(() => {
-        setIsRemoving(false);
-        action(card);
-      });
+      void import("@/lib/crumple-paper")
+        .then(({ playCrumplePaper }) =>
+          playCrumplePaper(el, { onComplete: () => action(card) }),
+        )
+        .catch(() => {
+          setIsRemoving(false);
+          action(card);
+        });
     },
     [card, isRemoving],
   );
@@ -96,20 +132,49 @@ export function Task({
     transition,
   };
 
-  const due = formatAppDate(card.dueDate, "d MMM", locale);
+  const otherColumns = columns.filter((c) => c.id !== card.columnId);
 
-  const priorityLabel = (p: NonNullable<Card["priority"]>) => {
-    switch (p) {
-      case "LOW":
-        return tCard("priorityLow");
-      case "MEDIUM":
-        return tCard("priorityMedium");
-      case "HIGH":
-        return tCard("priorityHigh");
-      case "URGENT":
-        return tCard("priorityUrgent");
-    }
-  };
+  const menu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="absolute end-1 top-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          aria-label={t("openCard")}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="size-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem onClick={() => onOpen(card.id)}>{t("openCard")}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onCopy(card)}>{t("copyCard")}</DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>{t("moveTo")}</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {otherColumns.map((col) => (
+              <DropdownMenuItem key={col.id} onClick={() => onMoveTo(card, col.id)}>
+                {col.title}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => removeWithCrumple(onArchive)}>
+          {t("archiveCard")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={() => setConfirmDelete(true)}
+        >
+          {t("deleteCard")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <ContextMenu>
@@ -126,90 +191,21 @@ export function Task({
             onOpen(card.id);
           }}
           onKeyDown={(e) => {
-            if (isRemoving) return;
-            if (e.key === "Enter" || e.key === " ") {
+            listeners?.onKeyDown?.(e);
+            if (e.defaultPrevented || isRemoving) return;
+            // Space starts a keyboard drag; Enter opens the card.
+            if (e.key === "Enter") {
               e.preventDefault();
               onOpen(card.id);
             }
           }}
           className={cn(
-            "group cursor-grab rounded-lg border border-border bg-card text-sm shadow-none transition-[box-shadow,opacity,border-color,transform] duration-150 hover:border-primary/30 hover:shadow-sm active:scale-[0.99] active:cursor-grabbing touch-manipulation",
-            isDragging && "opacity-50 scale-105 shadow-md ring-2 ring-primary/30",
+            "group relative cursor-pointer rounded-lg border border-border bg-card text-sm shadow-[var(--shadow-xs)] transition-[box-shadow,opacity,border-color] duration-150 hover:border-primary/30 hover:shadow-[var(--shadow-sm)] active:cursor-grabbing touch-manipulation",
+            isDragging && "cursor-grabbing opacity-0",
             isRemoving && "pointer-events-none",
           )}
         >
-          {card.coverColor && (
-            <div
-              className="h-8 rounded-t-md"
-              style={{ backgroundColor: card.coverColor }}
-            />
-          )}
-          <div className="p-2 space-y-1.5">
-            {card.labels && card.labels.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {card.labels.map((label) => (
-                  <span
-                    key={label.id}
-                    title={label.name}
-                    className="h-2 w-10 rounded-sm"
-                    style={{ backgroundColor: label.color }}
-                  />
-                ))}
-              </div>
-            )}
-            <p className="font-medium leading-snug">{card.title}</p>
-            {card.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {card.description}
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {card.priority && (
-                <span
-                  className={cn(
-                    "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                    PRIORITY_COLORS[card.priority],
-                  )}
-                >
-                  {priorityLabel(card.priority)}
-                </span>
-              )}
-              {card.category && (
-                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                  {card.category}
-                </span>
-              )}
-              {due && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <Calendar className="size-3" />
-                  {due}
-                </span>
-              )}
-              {(card._count?.comments ?? 0) > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <MessageSquare className="size-3" />
-                  {card._count!.comments}
-                </span>
-              )}
-              {(card._count?.attachments ?? 0) > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <Paperclip className="size-3" />
-                  {card._count!.attachments}
-                </span>
-              )}
-              {card.assignees && card.assignees.length > 0 && (
-                <div className="ms-auto flex -space-x-1.5 rtl:space-x-reverse">
-                  {card.assignees.slice(0, 3).map((a) => (
-                    <Avatar key={a.id} className="size-5 border border-background">
-                      <AvatarFallback className="text-[9px]">
-                        {a.username.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <TaskCardBody card={card} trailing={menu} />
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
@@ -218,17 +214,15 @@ export function Task({
         <ContextMenuSub>
           <ContextMenuSubTrigger>{t("moveTo")}</ContextMenuSubTrigger>
           <ContextMenuSubContent>
-            {columns
-              .filter((c) => c.id !== card.columnId)
-              .map((col) => (
-                <ContextMenuItem
-                  key={col.id}
-                  onClick={() => onMoveTo(card, col.id)}
-                >
-                  {col.title}
-                </ContextMenuItem>
-              ))}
-            {columns.filter((c) => c.id !== card.columnId).length === 0 && (
+            {otherColumns.map((col) => (
+              <ContextMenuItem
+                key={col.id}
+                onClick={() => onMoveTo(card, col.id)}
+              >
+                {col.title}
+              </ContextMenuItem>
+            ))}
+            {otherColumns.length === 0 && (
               <ContextMenuItem disabled>{t("noOtherColumns")}</ContextMenuItem>
             )}
           </ContextMenuSubContent>
@@ -243,11 +237,16 @@ export function Task({
         <ContextMenuItem
           disabled={isRemoving}
           className="text-destructive focus:text-destructive"
-          onClick={() => removeWithCrumple(onDelete)}
+          onClick={() => setConfirmDelete(true)}
         >
           {t("deleteCard")}
         </ContextMenuItem>
       </ContextMenuContent>
+      <ConfirmDelete
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        onConfirm={() => removeWithCrumple(onDelete)}
+      />
     </ContextMenu>
   );
 }

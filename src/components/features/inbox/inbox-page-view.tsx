@@ -36,7 +36,7 @@ export function InboxPageView() {
         />
       )}
 
-      {!isLoading && data.length === 0 && (
+      {!isLoading && !isError && data.length === 0 && (
         <EmptyState
           icon={Inbox}
           title={t("emptyTitle")}

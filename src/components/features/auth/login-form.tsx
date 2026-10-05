@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { Loader2, Lock, LogIn, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, LogIn, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   createLoginSchema,
@@ -14,6 +14,7 @@ import {
 } from "@/lib/validators";
 import { ApiError } from "@/lib/api";
 import { HOME_ROUTE } from "@/lib/auth/config";
+import { safeNextPath } from "@/lib/safe-next";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AuthField } from "./auth-field";
@@ -27,9 +28,10 @@ export function LoginForm() {
   const tVal = useTranslations("validators");
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") ?? HOME_ROUTE;
+  const next = safeNextPath(search.get("next"), HOME_ROUTE);
   const { login } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const schema = useMemo(
     () => createLoginSchema((key) => tVal(key as "passwordRequired")),
@@ -76,6 +78,9 @@ export function LoginForm() {
         autoComplete="username"
         placeholder={t("usernamePlaceholder")}
         error={errors.username?.message}
+        autoFocus
+        autoCapitalize="none"
+        spellCheck={false}
         {...register("username")}
       />
 
@@ -83,18 +88,19 @@ export function LoginForm() {
         id="password"
         label={t("password")}
         icon={Lock}
-        type="password"
+        type={showPassword ? "text" : "password"}
         autoComplete="current-password"
         placeholder="••••••••"
         error={errors.password?.message}
         trailing={
-          <a
-            href="#"
-            className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            onClick={(e) => e.preventDefault()}
+          <button
+            type="button"
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+            onClick={() => setShowPassword((v) => !v)}
           >
-            {t("forgotPassword")}
-          </a>
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
         }
         {...register("password")}
       />

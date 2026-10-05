@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { DashboardDateProvider } from "./dashboard-date-context";
@@ -22,6 +22,7 @@ function MeEventsBridge() {
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const locale = useLocale();
+  const t = useTranslations("common");
   const isRtl = locale === "fa";
 
   return (
@@ -33,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
           >
-            Skip to main content
+            {t("skipToContent")}
           </a>
           <div className="flex h-dvh w-full overflow-hidden bg-dashboard-frame">
             <div className="flex h-full w-full overflow-hidden bg-background">

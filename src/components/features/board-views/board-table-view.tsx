@@ -106,7 +106,7 @@ export function BoardTableView({
         header: t("colStart"),
         cell: ({ getValue }) => {
           const v = getValue() as string | null;
-          return v ? formatAppDate(v, locale) : "—";
+          return v ? formatAppDate(v, "d MMM yyyy", locale) : "—";
         },
       },
       {
@@ -114,7 +114,7 @@ export function BoardTableView({
         header: t("colDue"),
         cell: ({ getValue }) => {
           const v = getValue() as string | null;
-          return v ? formatAppDate(v, locale) : "—";
+          return v ? formatAppDate(v, "d MMM yyyy", locale) : "—";
         },
       },
       {
@@ -215,9 +215,25 @@ export function BoardTableView({
                   <th
                     key={h.id}
                     className="cursor-pointer px-3 py-2 text-start text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    aria-sort={
+                      h.column.getIsSorted() === "asc"
+                        ? "ascending"
+                        : h.column.getIsSorted() === "desc"
+                          ? "descending"
+                          : "none"
+                    }
                     onClick={h.column.getToggleSortingHandler()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        h.column.getToggleSortingHandler()?.(e);
+                      }
+                    }}
+                    tabIndex={0}
                   >
                     {flexRender(h.column.columnDef.header, h.getContext())}
+                    {h.column.getIsSorted() === "asc" ? " ↑" : ""}
+                    {h.column.getIsSorted() === "desc" ? " ↓" : ""}
                   </th>
                 ))}
               </tr>

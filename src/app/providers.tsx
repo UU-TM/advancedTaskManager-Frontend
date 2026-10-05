@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { ThemeProvider } from "next-themes";
+import { MotionConfig } from "framer-motion";
 import { AuthProvider } from "@/lib/auth/context";
 
 /**
@@ -14,9 +17,16 @@ import { AuthProvider } from "@/lib/auth/context";
  */
 
 export function Providers({ children }: { children: ReactNode }) {
+  const t = useTranslations("common");
   const [queryClient] = useState(
     () =>
       new QueryClient({
+        mutationCache: new MutationCache({
+          onError: (_error, _vars, _ctx, mutation) => {
+            if (mutation.options.onError) return;
+            toast.error(t("tryAgain"));
+          },
+        }),
         defaultOptions: {
           queries: {
             staleTime: 30 * 1000,
@@ -46,7 +56,9 @@ export function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
+        <MotionConfig reducedMotion="user">
+          <AuthProvider>{children}</AuthProvider>
+        </MotionConfig>
       </QueryClientProvider>
     </ThemeProvider>
   );

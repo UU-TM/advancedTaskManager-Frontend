@@ -13,10 +13,12 @@ import {
   CreditCard,
   Home,
   Inbox,
+  ListChecks,
   LayoutDashboard,
   LayoutTemplate,
   LogOut,
   Mail,
+  Pin,
   Package,
   Plug,
   Plus,
@@ -81,8 +83,8 @@ function NavLink({
     pathname === item.href || pathname.startsWith(`${item.href}/`);
   const Icon = item.icon;
 
-  const label = !isCollapsed ? (
-    <span className="flex min-w-0 items-center gap-2">
+  const label = (
+    <span className={cn("flex min-w-0 items-center gap-2", isCollapsed && "sr-only")}>
       <span className="truncate text-sm font-medium">{item.label}</span>
       {item.badge != null && (
         <Badge
@@ -93,13 +95,15 @@ function NavLink({
         </Badge>
       )}
     </span>
-  ) : null;
+  );
 
   return (
     <Link
       href={item.href}
+      aria-current={active ? "page" : undefined}
+      aria-label={item.label}
       className={cn(
-        "flex h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 transition",
+        "flex h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 transition focus-visible:ring-2 focus-visible:ring-sidebar-ring",
         isRtl ? "justify-end" : "justify-start",
         active
           ? "bg-primary/12 font-medium text-primary"
@@ -122,7 +126,15 @@ function NavLink({
 }
 
 export function SessionNavBar() {
+  const [pinned, setPinned] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
+  useEffect(() => {
+    const stored = window.localStorage.getItem("sidebar-pinned");
+    if (stored === "1") {
+      setPinned(true);
+      setIsCollapsed(false);
+    }
+  }, []);
   const [interactionLocked, setInteractionLocked] = useState(false);
   const pointerInsideRef = useRef(false);
   const locksRef = useRef(new Set<string>());
@@ -132,7 +144,7 @@ export function SessionNavBar() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const { user, logout } = useAuth();
-  const { workspaceId } = useActiveWorkspace();
+  const { workspaceId, workspace } = useActiveWorkspace();
   const { data: home } = useHome();
 
   const setInteractionLock = useCallback((id: string, locked: boolean) => {
@@ -160,7 +172,7 @@ export function SessionNavBar() {
   const general: NavItem[] = useMemo(
     () => [
       { label: t("home"), href: "/home", icon: Home },
-      { label: t("myWork"), href: "/my-work", icon: Inbox },
+      { label: t("myWork"), href: "/my-work", icon: ListChecks },
       { label: t("inbox"), href: "/inbox", icon: Bell },
       {
         label: t("myBoards"),
@@ -216,21 +228,19 @@ export function SessionNavBar() {
       transition={transitionProps}
       onMouseEnter={() => {
         pointerInsideRef.current = true;
-        setIsCollapsed(false);
+        window.setTimeout(() => {
+          if (pointerInsideRef.current) setIsCollapsed(false);
+        }, 150);
       }}
       onMouseLeave={() => {
         pointerInsideRef.current = false;
-        if (!interactionLocked) setIsCollapsed(true);
+        if (!interactionLocked && !pinned) setIsCollapsed(true);
       }}
+      onFocusCapture={() => setIsCollapsed(false)}
     >
       <div
         dir="ltr"
         className="relative z-40 flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
-        style={
-          isRtl
-            ? { fontFamily: "var(--font-vazirmatn), Tahoma, sans-serif" }
-            : undefined
-        }
       >
         {/* Brand */}
         <div
@@ -282,6 +292,25 @@ export function SessionNavBar() {
               )}
             </>
           )}
+          {showExpanded && (
+            <button
+              type="button"
+              aria-pressed={pinned}
+              aria-label={t("pinSidebar")}
+              className={cn(
+                "ms-auto rounded-md p-1 text-muted-foreground hover:bg-muted",
+                pinned && "text-primary",
+              )}
+              onClick={() => {
+                const next = !pinned;
+                setPinned(next);
+                window.localStorage.setItem("sidebar-pinned", next ? "1" : "0");
+                setIsCollapsed(!next);
+              }}
+            >
+              <Pin className="size-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Workspace */}
@@ -298,7 +327,7 @@ export function SessionNavBar() {
             <div className={cn("flex", isRtl ? "justify-end" : "justify-start")}>
               <Avatar className="size-6 rounded-md" aria-hidden>
                 <AvatarFallback className="rounded-md text-[10px]">
-                  {(workspaceId ?? "W").slice(0, 1).toUpperCase()}
+                  {(workspace?.name ?? "W").slice(0, 1).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>

@@ -10,30 +10,12 @@ import {
   useStarredBoards,
   useUnstarBoard,
 } from "@/hooks/use-home";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageSkeletonCards } from "@/components/ui/page-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { BoardCard } from "./board-card";
 import { CreateBoardDialog } from "./create-board-dialog";
 import { useMemo } from "react";
-
-function BoardsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border bg-card p-5">
-          <Skeleton className="mb-4 h-5 w-2/3" />
-          <Skeleton className="mb-2 h-1.5 w-full" />
-          <Skeleton className="mb-4 h-3 w-1/3" />
-          <div className="flex justify-between">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="size-7 rounded-full" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /**
  * Boards listing view — default post-login landing.
@@ -92,7 +74,7 @@ export function BoardsPageView() {
         </Alert>
       )}
 
-      {loading && <BoardsSkeleton />}
+      {loading && <PageSkeletonCards />}
 
       {!loading && !errorMessage && boards && boards.length === 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card/50 px-6 py-10">

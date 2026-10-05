@@ -23,8 +23,6 @@ function applyDocumentLocale(next: Locale) {
     "--font-app-sans",
     next === "fa" ? "var(--font-vazirmatn)" : "var(--font-plus-jakarta)",
   );
-  document.body.style.fontFamily =
-    next === "fa" ? "var(--font-vazirmatn), Tahoma, sans-serif" : "";
 }
 
 /**

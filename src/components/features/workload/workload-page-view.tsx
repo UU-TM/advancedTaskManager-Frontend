@@ -48,7 +48,7 @@ export function WorkloadPageView() {
         />
       )}
 
-      {workspaceId && !isLoading && data.length === 0 && (
+      {workspaceId && !isLoading && !isError && data.length === 0 && (
         <EmptyState
           icon={Users}
           title={t("emptyTitle")}

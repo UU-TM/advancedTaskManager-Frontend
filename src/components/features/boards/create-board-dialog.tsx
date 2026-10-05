@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Loader2, Plus } from "lucide-react";
 import { useCreateBoard } from "@/hooks/use-boards";
@@ -41,6 +43,8 @@ export function CreateBoardDialog({
   const t = useTranslations("boards");
   const tCommon = useTranslations("common");
   const tVal = useTranslations("validators");
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = onOpenChange ?? setUncontrolledOpen;
@@ -72,12 +76,14 @@ export function CreateBoardDialog({
   async function onSubmit(values: FormValues) {
     setServerError(null);
     try {
-      await createBoard.mutateAsync({
+      const board = await createBoard.mutateAsync({
         workspaceId,
         name: values.name,
       });
+      queryClient.setQueryData(["board", board.id], board);
       reset();
       setOpen(false);
+      router.push(`/boards/${board.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
         setServerError(err.message);
@@ -125,6 +131,7 @@ export function CreateBoardDialog({
                 id="board-name"
                 placeholder={t("namePlaceholder")}
                 autoComplete="off"
+                autoFocus
                 aria-invalid={!!errors.name}
                 {...register("name")}
               />

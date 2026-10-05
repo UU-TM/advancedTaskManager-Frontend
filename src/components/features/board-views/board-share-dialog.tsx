@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 
 export function BoardShareDialog({ boardId }: { boardId: string }) {
   const t = useTranslations("share");
@@ -28,6 +29,7 @@ export function BoardShareDialog({ boardId }: { boardId: string }) {
   const revoke = useRevokeShareLink(boardId);
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [revokeId, setRevokeId] = useState<string | null>(null);
 
   const active = links.filter((l) => !l.revokedAt);
 
@@ -39,9 +41,14 @@ export function BoardShareDialog({ boardId }: { boardId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="cursor-pointer">
-          <Share2 className="me-2 size-4" />
-          {t("share")}
+        <Button
+          variant="outline"
+          size="icon-sm"
+          className="cursor-pointer"
+          aria-label={t("share")}
+          title={t("share")}
+        >
+          <Share2 className="size-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -114,6 +121,7 @@ export function BoardShareDialog({ boardId }: { boardId: string }) {
                     size="icon"
                     variant="ghost"
                     className="size-8 cursor-pointer"
+                    aria-label={t("copy")}
                     onClick={() => {
                       void navigator.clipboard.writeText(publicUrl(link.token));
                       toast.success(t("copied"));
@@ -125,12 +133,8 @@ export function BoardShareDialog({ boardId }: { boardId: string }) {
                     size="icon"
                     variant="ghost"
                     className="size-8 cursor-pointer text-destructive"
-                    onClick={() =>
-                      revoke.mutate(link.id, {
-                        onSuccess: () => toast.success(t("revoked")),
-                        onError: () => toast.error(t("revokeFailed")),
-                      })
-                    }
+                    aria-label={t("revoke")}
+                    onClick={() => setRevokeId(link.id)}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>
@@ -140,6 +144,20 @@ export function BoardShareDialog({ boardId }: { boardId: string }) {
           </div>
         </div>
       </DialogContent>
+      <ConfirmDelete
+        open={revokeId != null}
+        onOpenChange={(next) => {
+          if (!next) setRevokeId(null);
+        }}
+        onConfirm={() => {
+          if (!revokeId) return;
+          revoke.mutate(revokeId, {
+            onSuccess: () => toast.success(t("revoked")),
+            onError: () => toast.error(t("revokeFailed")),
+          });
+          setRevokeId(null);
+        }}
+      />
     </Dialog>
   );
 }

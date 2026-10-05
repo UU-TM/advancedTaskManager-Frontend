@@ -162,11 +162,10 @@ export const ALL_WIDGET_TYPES = Object.keys(
 ) as DashboardWidgetType[];
 
 const STARTER_TYPES: DashboardWidgetType[] = [
+  "assigned",
+  "dueSoon",
   "todo",
-  "timer",
-  "activity",
-  "reminder",
-  "github",
+  "weekStrip",
 ];
 
 function overlaps(

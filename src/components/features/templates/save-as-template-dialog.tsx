@@ -25,14 +25,22 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface SaveAsTemplateDialogProps {
   boardId: string;
   boardName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showTrigger?: boolean;
 }
 
 export function SaveAsTemplateDialog({
   boardId,
   boardName,
+  open: controlledOpen,
+  onOpenChange,
+  showTrigger = true,
 }: SaveAsTemplateDialogProps) {
   const t = useTranslations("templates");
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -80,12 +88,14 @@ export function SaveAsTemplateDialog({
         else reset();
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="cursor-pointer">
-          <LayoutTemplate className="me-2 size-4" />
-          {t("saveAsTemplate")}
-        </Button>
-      </DialogTrigger>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="cursor-pointer">
+            <LayoutTemplate className="me-2 size-4" />
+            {t("saveAsTemplate")}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>

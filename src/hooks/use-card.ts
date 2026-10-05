@@ -2,12 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { cardsApi } from "@/lib/api";
+import { columnKeys } from "./use-columns";
 import type {
   CreateCardInput,
   UpdateCardInput,
   CopyCardInput,
 } from "@/lib/validators";
-import type { Card, CardMoveInput } from "@/types/domain";
+import type { BoardColumn, Card, CardMoveInput } from "@/types/domain";
 
 export const cardKeys = {
   all: ["cards"] as const,
@@ -15,6 +16,55 @@ export const cardKeys = {
     [...cardKeys.all, "column", columnId] as const,
   detail: (cardId: string) => [...cardKeys.all, "detail", cardId] as const,
 };
+
+function invalidateColumns(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: columnKeys.all });
+}
+
+/** Keep cards nested on the board-column query in sync with drag optimism. */
+function moveEmbeddedCard(
+  queryClient: ReturnType<typeof useQueryClient>,
+  id: string,
+  sourceColumnId: string,
+  input: CardMoveInput,
+) {
+  const entries = queryClient.getQueriesData<BoardColumn[]>({
+    queryKey: columnKeys.all,
+  });
+  for (const [key, cols] of entries) {
+    if (!cols?.some((col) => col.cards)) continue;
+    const next = cols.map((col) => ({
+      ...col,
+      cards: col.cards ? [...col.cards] : col.cards,
+    }));
+    const source = next.find((col) => col.id === sourceColumnId);
+    if (!source?.cards) continue;
+    const index = source.cards.findIndex((card) => card.id === id);
+    if (index === -1) continue;
+    const [moved] = source.cards.splice(index, 1);
+    const target =
+      input.columnId === sourceColumnId
+        ? source
+        : next.find((col) => col.id === input.columnId);
+    if (!target) continue;
+    const targetCards = target.cards ? [...target.cards] : [];
+    if (target === source) {
+      // `source.cards` was already spliced.
+    }
+    const list = target === source ? source.cards! : targetCards;
+    let insertAt = list.length;
+    if (input.beforeCardId) {
+      const i = list.findIndex((card) => card.id === input.beforeCardId);
+      if (i !== -1) insertAt = i;
+    } else if (input.afterCardId) {
+      const i = list.findIndex((card) => card.id === input.afterCardId);
+      if (i !== -1) insertAt = i + 1;
+    }
+    list.splice(insertAt, 0, { ...moved, columnId: input.columnId });
+    if (target !== source) target.cards = list;
+    queryClient.setQueryData(key, next);
+  }
+}
 
 export function useCards(columnId: string | undefined) {
   return useQuery({
@@ -36,10 +86,36 @@ export function useCreateCard() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateCardInput) => cardsApi.create(input),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({
+        queryKey: cardKeys.byColumn(input.columnId),
+      });
+      const prev = queryClient.getQueryData<Card[]>(
+        cardKeys.byColumn(input.columnId),
+      );
+      const optimistic: Card = {
+        id: `temp-${crypto.randomUUID()}`,
+        columnId: input.columnId,
+        title: input.title,
+        position: (prev?.length ?? 0) + 1,
+        createdAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData<Card[]>(cardKeys.byColumn(input.columnId), [
+        ...(prev ?? []),
+        optimistic,
+      ]);
+      return { prev, columnId: input.columnId };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.columnId) {
+        queryClient.setQueryData(cardKeys.byColumn(ctx.columnId), ctx.prev);
+      }
+    },
     onSuccess: (card) => {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(card.columnId),
       });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -56,6 +132,7 @@ export function useUpdateCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.detail(card.id),
       });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -69,6 +146,7 @@ export function useDeleteCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(columnId),
       });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -86,6 +164,8 @@ export function useMoveCard() {
     }) => cardsApi.move(id, input),
     onMutate: async ({ id, input, sourceColumnId }) => {
       await queryClient.cancelQueries({ queryKey: cardKeys.all });
+      await queryClient.cancelQueries({ queryKey: columnKeys.all });
+      moveEmbeddedCard(queryClient, id, sourceColumnId, input);
       const prevSource = queryClient.getQueryData<Card[]>(
         cardKeys.byColumn(sourceColumnId),
       );
@@ -95,7 +175,9 @@ export function useMoveCard() {
 
       const sourceCards = [...(prevSource ?? [])];
       const cardIndex = sourceCards.findIndex((c) => c.id === id);
-      if (cardIndex === -1) return { prevSource, prevTarget };
+      if (cardIndex === -1) {
+        return { prevSource, prevTarget, sourceColumnId, targetColumnId: input.columnId };
+      }
 
       const [moved] = sourceCards.splice(cardIndex, 1);
       const targetCards =
@@ -150,6 +232,7 @@ export function useMoveCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(vars.input.columnId),
       });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -163,6 +246,21 @@ export function useArchiveCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(columnId),
       });
+      invalidateColumns(queryClient);
+    },
+  });
+}
+
+export function useUnarchiveCard() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string; columnId: string }) =>
+      cardsApi.unarchive(id),
+    onSuccess: (_card, { columnId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: cardKeys.byColumn(columnId),
+      });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -176,6 +274,7 @@ export function useCopyCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(card.columnId),
       });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -193,6 +292,7 @@ export function useAssignCard() {
         queryKey: cardKeys.byColumn(card.columnId),
       });
       void queryClient.invalidateQueries({ queryKey: ["home"] });
+      invalidateColumns(queryClient);
     },
   });
 }
@@ -209,6 +309,7 @@ export function useUnassignCard() {
       void queryClient.invalidateQueries({
         queryKey: cardKeys.byColumn(card.columnId),
       });
+      invalidateColumns(queryClient);
     },
   });
 }

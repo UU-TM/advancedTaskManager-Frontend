@@ -121,7 +121,7 @@ export function GoalsPageView() {
         />
       )}
 
-      {!isLoading && goals.length === 0 && workspaceId && (
+      {!isLoading && !isError && goals.length === 0 && workspaceId && (
         <EmptyState
           icon={Target}
           title={t("emptyTitle")}

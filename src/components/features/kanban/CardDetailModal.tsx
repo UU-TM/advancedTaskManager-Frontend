@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Calendar,
   Check,
@@ -12,7 +12,6 @@ import {
   MessageSquare,
   Paperclip,
   Pencil,
-  Sparkles,
   Timer,
   Trash2,
   Upload,
@@ -21,6 +20,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { toastUndo } from "@/lib/undo-toast";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +74,6 @@ import {
 import { useColumns } from "@/hooks/use-columns";
 import { useCardWatchers, useToggleWatch } from "@/hooks/use-watchers";
 import { useCommentReactions } from "@/hooks/use-reactions";
-import { useSummarizeCard } from "@/hooks/use-ai";
 import { cardsApi, attachmentsApi } from "@/lib/api";
 import { formatAppDate } from "@/lib/date";
 import type { Locale } from "@/i18n/config";
@@ -82,6 +81,7 @@ import { PRIORITY_COLORS, LABEL_PRESET_COLORS } from "./priority";
 import type { CardPriority, CardRecurrence } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { CardGithubSection } from "./CardGithubSection";
+import { CardBrief } from "./card-brief";
 import { useAuth } from "@/hooks/use-auth";
 
 type CardDetailModalProps = {
@@ -105,7 +105,7 @@ function Section({
   const reduce = useReducedMotion();
   return (
     <motion.section
-      className="space-y-3"
+      className="space-y-1.5"
       initial={reduce ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, delay, ease: "easeOut" }}
@@ -190,8 +190,6 @@ export function CardDetailModal({
   const { data: watchers } = useCardWatchers(cardId ?? undefined);
   const toggleWatch = useToggleWatch(cardId ?? "");
   const reactions = useCommentReactions(cardId ?? "");
-  const summarizeCard = useSummarizeCard();
-  const tAi = useTranslations("ai");
   const tWatch = useTranslations("watch");
 
   const [title, setTitle] = useState("");
@@ -206,6 +204,10 @@ export function CardDetailModal({
   const [hydratedId, setHydratedId] = useState<string | null>(null);
   const [pulseKey, setPulseKey] = useState<string | null>(null);
   const [celebrateListId, setCelebrateListId] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const draftRef = useRef({ title: "", description: "" });
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  draftRef.current = { title, description };
 
   const boardCards = useMemo(
     () =>
@@ -228,56 +230,91 @@ export function CardDetailModal({
       setTitle(card.title);
       setDescription(card.description ?? "");
       setHydratedId(card.id);
+      setSaveState("idle");
     }
   }, [card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const flushSave = useCallback(() => {
+    if (!card || hydratedId !== card.id) return;
+    const nextTitle = draftRef.current.title;
+    const nextDesc = draftRef.current.description;
+    const titleChanged = Boolean(nextTitle.trim()) && nextTitle.trim() !== card.title;
+    const descChanged = nextDesc !== (card.description ?? "");
+    if (!titleChanged && !descChanged) return;
+    if (!nextTitle.trim() && title !== card.title) {
+      toast.error(t("failedSave"));
+      return;
+    }
+    setSaveState("saving");
+    updateCard.mutate(
+      {
+        id: card.id,
+        input: {
+          ...(titleChanged ? { title: nextTitle.trim() } : {}),
+          ...(descChanged ? { description: nextDesc } : {}),
+        },
+      },
+      {
+        onError: () => {
+          setSaveState("idle");
+          toast.error(t("failedSave"));
+        },
+        onSuccess: () => setSaveState("saved"),
+      },
+    );
+  }, [card, hydratedId, t, title, updateCard]);
+
   useEffect(() => {
     if (!cardId || !open || hydratedId !== cardId || !card) return;
-    const timer = setTimeout(() => {
-      const titleChanged = title.trim() && title.trim() !== card.title;
-      const descChanged = description !== (card.description ?? "");
-      if (!titleChanged && !descChanged) return;
-      updateCard.mutate(
-        {
-          id: card.id,
-          input: {
-            ...(titleChanged ? { title: title.trim() } : {}),
-            ...(descChanged ? { description } : {}),
-          },
-        },
-        { onError: () => toast.error(t("failedSave")) },
-      );
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [title, description, cardId, open, hydratedId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => flushSave(), 600);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [title, description, cardId, open, hydratedId, flushSave, card]);
+
+  function handleOpenChange(next: boolean) {
+    if (!next) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      flushSave();
+    }
+    onOpenChange(next);
+  }
 
   const assigneeIds = new Set(card?.assignees?.map((a) => a.id) ?? []);
   const cardLabelIds = new Set(card?.labels?.map((l) => l.id) ?? []);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-xl sm:max-w-3xl">
         <DialogHeader className="relative shrink-0 space-y-0 border-b border-border/80 text-start">
           <DialogTitle className="sr-only">{t("details")}</DialogTitle>
+          {saveState !== "idle" && (
+            <p className="absolute end-14 top-3 text-xs text-muted-foreground">
+              {saveState === "saving" ? tCommon("saving") : tCommon("saved")}
+            </p>
+          )}
           {card?.coverColor ? (
             <motion.div
               layout
-              className="rounded-t-2xl px-6 pb-5 pt-12 pe-14"
+              className="rounded-t-2xl px-5 pb-4 pt-10 pe-12"
               style={{ backgroundColor: card.coverColor }}
               transition={{ duration: 0.25 }}
             >
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                onBlur={flushSave}
                 className="h-auto rounded-none border-none bg-transparent px-0 py-1.5 text-xl font-semibold text-white shadow-none outline-none placeholder:text-white/70 focus-visible:border-none focus-visible:ring-0 dark:bg-transparent"
                 placeholder={t("titlePlaceholder")}
               />
             </motion.div>
           ) : (
-            <div className="py-4 ps-6 pe-14">
+            <div className="py-3 ps-5 pe-12">
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                onBlur={flushSave}
                 className="h-auto rounded-none border-none bg-transparent px-0 py-1.5 text-xl font-semibold shadow-none outline-none focus-visible:border-none focus-visible:ring-0 dark:bg-transparent"
                 placeholder={t("titlePlaceholder")}
               />
@@ -285,22 +322,41 @@ export function CardDetailModal({
           )}
         </DialogHeader>
 
-        <div className="grid flex-1 gap-8 overflow-y-auto px-6 py-5 md:grid-cols-[1fr_200px]">
+        <div className="grid flex-1 gap-x-5 gap-y-4 overflow-y-auto px-5 py-4 md:grid-cols-[minmax(0,1fr)_17rem]">
           <div className="min-w-0">
             {isLoading && (
               <p className="text-sm text-muted-foreground">{tCommon("loading")}</p>
             )}
 
-            <Tabs defaultValue="details" className="gap-6">
+            <Tabs defaultValue="details" className="gap-3">
               <TabsList>
                 <TabsTrigger value="details">{t("details")}</TabsTrigger>
                 <TabsTrigger value="activity">{t("activity")}</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="details" className="mt-0 space-y-8">
+              <TabsContent value="details" className="mt-0 space-y-4">
+            {card && (
+              <CardBrief
+                card={card}
+                checklists={checklists}
+                blockerNames={deps
+                  .filter((dep) => dep.blockedId === cardId)
+                  .map((dep) => dep.blockerTitle)}
+              />
+            )}
+            <Section title={t("description")} delay={0.02}>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                onBlur={flushSave}
+                placeholder={t("descriptionPlaceholder")}
+                rows={2}
+                className="min-h-14 resize-none bg-muted/40 py-2 transition-colors focus:bg-background"
+              />
+            </Section>
             <Section
               title={t("labels")}
-              delay={0.02}
+              delay={0.05}
             >
               <div className="flex flex-wrap gap-2">
                 {labels.map((label) => {
@@ -370,22 +426,12 @@ export function CardDetailModal({
               </div>
             </Section>
 
-            <Section title={t("description")} delay={0.05}>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("descriptionPlaceholder")}
-                rows={4}
-                className="resize-none bg-muted/40 transition-colors focus:bg-background"
-              />
-            </Section>
-
             <Section
               title={t("checklists")}
               icon={<CheckSquare className="size-3.5" />}
               delay={0.08}
             >
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {checklists.map((list) => {
                   const done = list.items.filter((i) => i.completed).length;
                   const total = list.items.length;
@@ -394,7 +440,7 @@ export function CardDetailModal({
                   return (
                     <div
                       key={list.id}
-                      className="relative space-y-3 rounded-xl bg-muted/40 p-4"
+                      className="relative space-y-2 rounded-lg bg-muted/40 p-2.5"
                     >
                       <AnimatePresence>
                         {celebrating && (
@@ -417,7 +463,12 @@ export function CardDetailModal({
                             variant="ghost"
                             size="icon"
                             className="size-7"
-                            onClick={() => checklistMut.remove.mutate(list.id)}
+                            aria-label={tCommon("delete")}
+                            onClick={() =>
+                              toastUndo(tCommon("confirmDeleteTitle"), tCommon("undo"), () =>
+                                checklistMut.remove.mutate(list.id),
+                              )
+                            }
                           >
                             <Trash2 className="size-3.5" />
                           </Button>
@@ -490,8 +541,11 @@ export function CardDetailModal({
                                 variant="ghost"
                                 size="icon"
                                 className="size-6 opacity-0 transition-opacity group-hover/item:opacity-100 focus-visible:opacity-100"
+                                aria-label={tCommon("remove")}
                                 onClick={() =>
-                                  checklistMut.removeItem.mutate(item.id)
+                                  toastUndo(tCommon("confirmDeleteTitle"), tCommon("undo"), () =>
+                                    checklistMut.removeItem.mutate(item.id),
+                                  )
                                 }
                               >
                                 <X className="size-3" />
@@ -621,14 +675,19 @@ export function CardDetailModal({
                       variant="ghost"
                       size="icon"
                       className="size-7"
-                      onClick={() => attachmentMut.remove.mutate(att.id)}
+                      aria-label={tCommon("delete")}
+                      onClick={() =>
+                        toastUndo(tCommon("confirmDeleteTitle"), tCommon("undo"), () =>
+                          attachmentMut.remove.mutate(att.id),
+                        )
+                      }
                     >
                       <Trash2 className="size-3.5" />
                     </Button>
                   </li>
                 ))}
               </ul>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-3 py-3 text-sm text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground">
                 <Upload className="size-4" />
                 {t("uploadFile")}
                 <input
@@ -651,7 +710,7 @@ export function CardDetailModal({
             </Section>
               </TabsContent>
 
-              <TabsContent value="activity" className="mt-0 space-y-8">
+              <TabsContent value="activity" className="mt-0 space-y-4">
             <Section
               title={t("comments")}
               icon={<MessageSquare className="size-3.5" />}
@@ -696,7 +755,12 @@ export function CardDetailModal({
                               variant="ghost"
                               size="icon"
                               className="size-6"
-                              onClick={() => commentMut.remove.mutate(c.id)}
+                              aria-label={tCommon("delete")}
+                              onClick={() =>
+                                toastUndo(tCommon("confirmDeleteTitle"), tCommon("undo"), () =>
+                                  commentMut.remove.mutate(c.id),
+                                )
+                              }
                             >
                               <Trash2 className="size-3" />
                             </Button>
@@ -851,18 +915,18 @@ export function CardDetailModal({
             </Tabs>
           </div>
 
-          <aside className="space-y-5 md:sticky md:top-0 md:self-start">
+          <aside className="space-y-3 md:sticky md:top-0 md:self-start">
             <motion.div
-              className="space-y-5"
+              className="space-y-3"
               initial={reduce ? false : { opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25, delay: 0.06 }}
             >
-              <div className="flex flex-col gap-2">
+              <div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="cursor-pointer justify-start"
+                  className="h-8 w-full cursor-pointer justify-start px-2"
                   disabled={!cardId || toggleWatch.isPending}
                   onClick={() =>
                     toggleWatch.mutate(!!watchers?.watching, {
@@ -883,30 +947,11 @@ export function CardDetailModal({
                   )}
                   {watchers?.watching ? tWatch("unwatch") : tWatch("watch")}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer justify-start"
-                  disabled={!cardId || summarizeCard.isPending}
-                  onClick={() => {
-                    if (!cardId) return;
-                    summarizeCard.mutate(cardId, {
-                      onSuccess: (res) =>
-                        toast.message(tAi("cardSummary"), {
-                          description: res.summary,
-                        }),
-                      onError: () => toast.error(tAi("summaryFailed")),
-                    });
-                  }}
-                >
-                  <Sparkles className="me-1.5 size-3.5" />
-                  {tAi("summarize")}
-                </Button>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">{t("assignees")}</Label>
-                <div className="space-y-1.5">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">{t("assignees")}</Label>
+                <div className="flex flex-wrap gap-1">
                   {members.map((m) => {
                     const uid = m.user?.id ?? m.userId;
                     const name = m.user?.username ?? m.userId.slice(0, 8);
@@ -917,7 +962,7 @@ export function CardDetailModal({
                         type="button"
                         whileTap={reduce ? undefined : { scale: 0.98 }}
                         className={cn(
-                          "flex w-full cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 text-start text-sm transition-colors duration-150",
+                          "flex cursor-pointer items-center gap-1.5 rounded-md px-1.5 py-1 text-start text-xs transition-colors duration-150",
                           on
                             ? "bg-primary/10 text-foreground ring-1 ring-primary/40"
                             : "bg-muted/40 hover:bg-muted",
@@ -952,8 +997,9 @@ export function CardDetailModal({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">{t("priority")}</Label>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">{t("priority")}</Label>
                 <Select
                   value={card?.priority ?? "none"}
                   onValueChange={(v) => {
@@ -973,7 +1019,7 @@ export function CardDetailModal({
                     );
                   }}
                 >
-                  <SelectTrigger className="h-9 relative">
+                  <SelectTrigger className="relative h-8">
                     <SuccessPulse show={pulseKey === "priority"} />
                     <SelectValue placeholder={tCommon("none")} />
                   </SelectTrigger>
@@ -1003,10 +1049,10 @@ export function CardDetailModal({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">{t("category")}</Label>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">{t("category")}</Label>
                 <Input
-                  className="h-9"
+                  className="h-8"
                   defaultValue={card?.category ?? ""}
                   key={card?.id + (card?.category ?? "")}
                   onBlur={(e) => {
@@ -1021,8 +1067,8 @@ export function CardDetailModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Calendar className="size-3" /> {t("dueDate")}
                 </Label>
                 <ShamsiDatePicker
@@ -1037,8 +1083,8 @@ export function CardDetailModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Calendar className="size-3" /> Start
                 </Label>
                 <ShamsiDatePicker
@@ -1050,12 +1096,12 @@ export function CardDetailModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Estimate (min)</Label>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Estimate (min)</Label>
                 <Input
                   type="number"
                   min={0}
-                  className="h-9"
+                  className="h-8"
                   defaultValue={card?.estimateMinutes ?? ""}
                   key={`est-${card?.id}-${card?.estimateMinutes ?? ""}`}
                   onBlur={(e) => {
@@ -1072,8 +1118,8 @@ export function CardDetailModal({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Recurrence</Label>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Recurrence</Label>
                 <Select
                   value={card?.recurrence ?? "NONE"}
                   onValueChange={(v) => {
@@ -1084,7 +1130,7 @@ export function CardDetailModal({
                     });
                   }}
                 >
-                  <SelectTrigger className="h-9 cursor-pointer">
+                  <SelectTrigger className="h-8 cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1098,16 +1144,17 @@ export function CardDetailModal({
                   </SelectContent>
                 </Select>
               </div>
+              </div>
 
-              <div className="space-y-2">
-                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Timer className="size-3" /> Timer
                 </Label>
                 {activeTimer?.cardId === cardId ? (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full cursor-pointer"
+                    className="h-8 w-full cursor-pointer"
                     onClick={() =>
                       stopTimer.mutate(undefined, {
                         onSuccess: () => toast.success("Timer stopped"),
@@ -1120,7 +1167,7 @@ export function CardDetailModal({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full cursor-pointer"
+                    className="h-8 w-full cursor-pointer"
                     disabled={!cardId || !!activeTimer}
                     onClick={() =>
                       startTimer.mutate(cardId!, {
@@ -1134,8 +1181,8 @@ export function CardDetailModal({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Link2 className="size-3" /> Blocked by
                 </Label>
                 <ul className="space-y-1 text-xs">
@@ -1194,8 +1241,8 @@ export function CardDetailModal({
               </div>
 
               {cardId && card && (
-                <div className="space-y-2">
-                  <Label className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="space-y-1">
+                  <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                     <GitBranch className="size-3" /> GitHub
                   </Label>
                   <CardGithubSection
@@ -1207,11 +1254,11 @@ export function CardDetailModal({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">
                   {t("coverColor")}
                 </Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {LABEL_PRESET_COLORS.map((color) => {
                     const selected = card?.coverColor === color;
                     return (
@@ -1220,7 +1267,7 @@ export function CardDetailModal({
                         type="button"
                         whileTap={reduce ? undefined : { scale: 0.88 }}
                         className={cn(
-                          "size-7 cursor-pointer rounded-full transition-shadow duration-150",
+                          "size-5 cursor-pointer rounded-full transition-shadow duration-150",
                           selected
                             ? "ring-2 ring-primary ring-offset-2 ring-offset-card"
                             : "hover:scale-105",

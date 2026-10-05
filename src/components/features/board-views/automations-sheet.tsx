@@ -7,14 +7,17 @@ import { Plus, Trash2, Zap } from "lucide-react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import {
   Select,
   SelectContent,
@@ -48,6 +51,28 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
   const [actionType, setActionType] = useState("NOTIFY");
   const [actionColumnId, setActionColumnId] = useState("");
   const [message, setMessage] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const triggerLabels: Record<string, string> = {
+    CARD_MOVED: t("trigMoved"),
+    CARD_ASSIGNED: t("trigAssigned"),
+    CHECKLIST_COMPLETE: t("trigChecklist"),
+    DUE_SOON: t("trigDueSoon"),
+    GITHUB_PR_MERGED: t("trigPrMerged"),
+  };
+  const actionLabels: Record<string, string> = {
+    NOTIFY: t("actNotify"),
+    MOVE_TO_COLUMN: t("actMove"),
+    SET_DUE_DAYS: t("actDue"),
+    CREATE_REMINDER: t("actReminder"),
+    ADD_LABEL: t("actNotify"),
+    ASSIGN_USER: t("actNotify"),
+  };
+
+  function columnTitle(id?: string) {
+    if (!id) return null;
+    return columns.find((column) => column.id === id)?.title ?? null;
+  }
 
   function handleCreate() {
     if (!name.trim()) {
@@ -102,20 +127,26 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="cursor-pointer">
-          <Zap className="me-2 size-4" />
-          {t("title")}
+        <Button
+          variant="outline"
+          size="icon-sm"
+          className="cursor-pointer"
+          aria-label={t("title")}
+          title={t("title")}
+        >
+          <Zap className="size-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="border-b border-border">
           <SheetTitle>{t("title")}</SheetTitle>
+          <SheetDescription>{t("subtitle")}</SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
-          <div className="space-y-3 rounded-xl border border-border p-4">
-            <p className="text-sm font-medium">{t("newRule")}</p>
-            <div className="space-y-2">
+        <div className="space-y-3 border-b border-border p-4">
+          <p className="text-sm font-medium">{t("newRule")}</p>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label>{t("name")}</Label>
               <Input
                 value={name}
@@ -123,7 +154,7 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
                 placeholder={t("namePlaceholder")}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>{t("when")}</Label>
               <Select value={triggerType} onValueChange={setTriggerType}>
                 <SelectTrigger className="cursor-pointer">
@@ -164,7 +195,7 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
                 </Select>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>{t("then")}</Label>
               <Select value={actionType} onValueChange={setActionType}>
                 <SelectTrigger className="cursor-pointer">
@@ -211,18 +242,38 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
               {t("add")}
             </Button>
           </div>
+        </div>
 
-          <ul className="space-y-3">
-            {rules.map((rule) => (
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          {rules.length === 0 ? (
+            <EmptyState
+              icon={Zap}
+              title={t("emptyTitle")}
+              description={t("empty")}
+              className="h-full"
+            />
+          ) : (
+          <ul className="space-y-2">
+            {rules.map((rule) => {
+              const when = triggerLabels[rule.trigger.type] ?? rule.trigger.type;
+              const whenColumn = columnTitle(rule.trigger.columnId);
+              const then = rule.actions
+                .map((action) => {
+                  const label = actionLabels[action.type] ?? action.type;
+                  const target = columnTitle(action.columnId);
+                  return target ? `${label}: ${target}` : label;
+                })
+                .join(", ");
+              return (
               <li
                 key={rule.id}
-                className="flex items-start gap-3 rounded-xl border border-border p-3"
+                className="flex items-start gap-3 rounded-lg border border-border p-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{rule.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {rule.trigger.type} →{" "}
-                    {rule.actions.map((a) => a.type).join(", ")}
+                    {when}
+                    {whenColumn ? ` · ${whenColumn}` : ""} → {then}
                   </p>
                 </div>
                 <Switch
@@ -235,22 +286,31 @@ export function AutomationsSheet({ boardId, columns }: AutomationsSheetProps) {
                   size="icon"
                   variant="ghost"
                   className="cursor-pointer text-destructive"
-                  onClick={() =>
-                    remove.mutate(rule.id, {
-                      onSuccess: () => toast.success(t("deleted")),
-                    })
-                  }
+                  aria-label={t("deleted")}
+                  onClick={() => setDeleteId(rule.id)}
                 >
                   <Trash2 className="size-4" />
                 </Button>
               </li>
-            ))}
-            {rules.length === 0 && (
-              <p className="text-sm text-muted-foreground">{t("empty")}</p>
-            )}
+              );
+            })}
           </ul>
+          )}
         </div>
       </SheetContent>
+      <ConfirmDelete
+        open={deleteId != null}
+        onOpenChange={(next) => {
+          if (!next) setDeleteId(null);
+        }}
+        onConfirm={() => {
+          if (!deleteId) return;
+          remove.mutate(deleteId, {
+            onSuccess: () => toast.success(t("deleted")),
+          });
+          setDeleteId(null);
+        }}
+      />
     </Sheet>
   );
 }

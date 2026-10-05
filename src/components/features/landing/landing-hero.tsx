@@ -151,7 +151,7 @@ export function LandingHero() {
 
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="flex flex-col items-center"

@@ -27,9 +27,34 @@ export function useCreateColumn() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateColumnInput) => boardsApi.addColumn(input),
-    onSuccess: (_col, variables) => {
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({
+        queryKey: columnKeys.byBoard(input.boardId),
+      });
+      const prev = queryClient.getQueryData<BoardColumn[]>(
+        columnKeys.byBoard(input.boardId),
+      );
+      const optimistic: BoardColumn = {
+        id: `temp-${crypto.randomUUID()}`,
+        boardId: input.boardId,
+        title: input.name,
+        position: (prev?.length ?? 0) + 1,
+        createdAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData<BoardColumn[]>(
+        columnKeys.byBoard(input.boardId),
+        [...(prev ?? []), optimistic],
+      );
+      return { prev, boardId: input.boardId };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx) {
+        queryClient.setQueryData(columnKeys.byBoard(ctx.boardId), ctx.prev);
+      }
+    },
+    onSettled: (_col, _err, input) => {
       void queryClient.invalidateQueries({
-        queryKey: columnKeys.byBoard(variables.boardId),
+        queryKey: columnKeys.byBoard(input.boardId),
       });
     },
   });
@@ -73,6 +98,19 @@ export function useArchiveColumn() {
   return useMutation({
     mutationFn: ({ id }: { id: string; boardId: string }) =>
       boardsApi.archiveColumn(id),
+    onSuccess: (_col, { boardId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: columnKeys.byBoard(boardId),
+      });
+    },
+  });
+}
+
+export function useUnarchiveColumn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string; boardId: string }) =>
+      boardsApi.unarchiveColumn(id),
     onSuccess: (_col, { boardId }) => {
       void queryClient.invalidateQueries({
         queryKey: columnKeys.byBoard(boardId),

@@ -19,6 +19,8 @@ import { useUpdateCard } from "@/hooks/use-card";
 import type { BoardColumn, Card } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { formatAppDate } from "@/lib/date";
+import type { Locale } from "@/i18n/config";
 
 type BoardCalendarViewProps = {
   columns: BoardColumn[];
@@ -30,7 +32,9 @@ export function BoardCalendarView({
   onOpenCard,
 }: BoardCalendarViewProps) {
   const t = useTranslations("boardViews");
-  const locale = useLocale();
+  const tCommon = useTranslations("common");
+  const locale = useLocale() as Locale;
+  const weekStartsOn = locale === "fa" ? 6 : 0;
   const updateCard = useUpdateCard();
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
 
@@ -41,12 +45,27 @@ export function BoardCalendarView({
   }, [columns]);
 
   const days = useMemo(() => {
-    const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 });
-    const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 });
+    const start = startOfWeek(startOfMonth(cursor), { weekStartsOn });
+    const end = endOfWeek(endOfMonth(cursor), { weekStartsOn });
     return eachDayOfInterval({ start, end });
-  }, [cursor]);
+  }, [cursor, weekStartsOn]);
 
-  const monthLabel = format(cursor, locale === "fa" ? "MMMM yyyy" : "MMMM yyyy");
+  const monthLabel = formatAppDate(cursor.toISOString(), "MMMM yyyy", locale) ?? "";
+  const weekdayHeaders = useMemo(() => {
+    const start = startOfWeek(new Date(), { weekStartsOn });
+    return eachDayOfInterval({ start, end: addDays(start, 6) }).map(
+      (day) => formatAppDate(day.toISOString(), "EEE", locale) ?? "",
+    );
+  }, [locale, weekStartsOn]);
+  const unscheduled = useMemo(() => {
+    const list: Card[] = [];
+    for (const col of columns) {
+      for (const card of col.cards ?? []) {
+        if (!card.dueDate) list.push(card);
+      }
+    }
+    return list;
+  }, [columns]);
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden p-4 md:p-6" dir="ltr">
@@ -55,9 +74,10 @@ export function BoardCalendarView({
           size="icon"
           variant="outline"
           className="cursor-pointer"
+          aria-label={tCommon("selectDate")}
           onClick={() => setCursor((d) => startOfMonth(addDays(d, -15)))}
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft className="size-4 rtl:rotate-180" />
         </Button>
         <h2 className="min-w-[10rem] text-center text-sm font-semibold">
           {monthLabel}
@@ -66,14 +86,23 @@ export function BoardCalendarView({
           size="icon"
           variant="outline"
           className="cursor-pointer"
+          aria-label={tCommon("selectDate")}
           onClick={() => setCursor((d) => startOfMonth(addDays(d, 45)))}
         >
-          <ChevronRight className="size-4" />
+          <ChevronRight className="size-4 rtl:rotate-180" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="cursor-pointer"
+          onClick={() => setCursor(startOfMonth(new Date()))}
+        >
+          {t("filterAll")}
         </Button>
       </div>
 
       <div className="grid grid-cols-7 gap-px overflow-auto rounded-xl border border-border bg-border">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+        {weekdayHeaders.map((d) => (
           <div
             key={d}
             className="bg-muted px-2 py-1.5 text-center text-[11px] font-semibold uppercase text-muted-foreground"
@@ -125,15 +154,33 @@ export function BoardCalendarView({
                   </button>
                 ))}
                 {dayCards.length > 4 && (
-                  <p className="text-[10px] text-muted-foreground">
+                  <button
+                    type="button"
+                    className="text-[11px] text-muted-foreground"
+                    onClick={() => onOpenCard(dayCards[4]!.id)}
+                  >
                     +{dayCards.length - 4}
-                  </p>
+                  </button>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+      {unscheduled.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {unscheduled.slice(0, 8).map((card) => (
+            <button
+              key={card.id}
+              type="button"
+              className="rounded-md border border-border px-2 py-1 text-xs"
+              onClick={() => onOpenCard(card.id)}
+            >
+              {card.title}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

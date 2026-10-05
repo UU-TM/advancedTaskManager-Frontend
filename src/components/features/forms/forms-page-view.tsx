@@ -229,7 +229,7 @@ export function FormsPageView() {
         />
       )}
 
-      {!isLoading && forms.length === 0 && workspaceId && (
+      {!isLoading && !isError && forms.length === 0 && workspaceId && (
         <EmptyState
           icon={ClipboardList}
           title={t("emptyTitle")}

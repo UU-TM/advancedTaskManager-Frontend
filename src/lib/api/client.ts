@@ -47,10 +47,19 @@ export function getServerApiBaseUrl(): string {
   );
 }
 
+/**
+ * Base URL for fetches made by the browser.
+ * Same-origin proxy so register/login data calls are not blocked by the API's CORS/CORP headers.
+ * External links (OAuth, MCP) should keep using `API_BASE_URL`.
+ */
+export function getClientApiBaseUrl(): string {
+  return "/backend";
+}
+
 function resolveApiBaseUrl(): string {
   return typeof window === "undefined"
     ? getServerApiBaseUrl()
-    : API_BASE_URL;
+    : getClientApiBaseUrl();
 }
 
 /** Routes that should NOT trigger a refresh attempt. */

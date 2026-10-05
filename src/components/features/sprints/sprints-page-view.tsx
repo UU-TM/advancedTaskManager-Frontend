@@ -134,7 +134,7 @@ export function SprintsPageView() {
         />
       )}
 
-      {!isLoading && sprints.length === 0 && workspaceId && (
+      {!isLoading && !isError && sprints.length === 0 && workspaceId && (
         <EmptyState
           icon={Rocket}
           title={t("emptyTitle")}

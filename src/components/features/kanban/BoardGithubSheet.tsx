@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import {
   ExternalLink,
   Github,
-  GitPullRequest,
   Loader2,
   RefreshCw,
   Unlink,
@@ -344,25 +343,24 @@ export function BoardGithubSheet({ boardId }: { boardId: string }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <Button
         variant="outline"
-        size="sm"
-        className={cn("cursor-pointer")}
+        size="icon-sm"
+        className={cn("relative cursor-pointer")}
+        aria-label={t("title")}
+        title={t("title")}
         onClick={() => setOpen(true)}
       >
-        <Github className="me-2 size-4" />
-        {t("title")}
+        <Github className="size-4" />
         {repoLink && (
-          <Badge variant="secondary" className="ms-2 font-normal">
-            <GitPullRequest className="size-3" />
-          </Badge>
+          <span className="absolute -end-0.5 -top-0.5 size-2 rounded-full bg-primary" />
         )}
       </Button>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="border-b border-border">
           <SheetTitle>{t("boardTitle")}</SheetTitle>
           <SheetDescription>{t("boardDescription")}</SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {statusLoading || (open && repoLoading) ? (
             <div className="space-y-2">
               <Skeleton className="h-9 w-full" />

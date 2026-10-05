@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   KeyboardSensor,
   closestCorners,
   useSensor,
@@ -21,36 +23,40 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Column } from "./Column";
-import { CreateColumnDialog } from "./CreateColumnDialog";
+import { InlineColumnComposer } from "./InlineColumnComposer";
 import { CardDetailModal } from "./CardDetailModal";
-import { BoardMembersDialog } from "./BoardMembersDialog";
-import { BoardManageMenu } from "./BoardManageMenu";
+import { TaskCardBody } from "./TaskCardBody";
+import {
+  findCardPlacement,
+  insertionIndex,
+  readColumnCards,
+  relocateCard,
+  restoreCardDrag,
+  snapshotCardDrag,
+  type CardDragSnapshot,
+} from "./card-drag";
 import {
   useArchiveCard,
   useCopyCard,
   useDeleteCard,
   useMoveCard,
+  useUnarchiveCard,
 } from "@/hooks/use-card";
 import {
   useArchiveColumn,
   useColumns,
+  useCreateColumn,
   useDeleteColumn,
   useMoveColumn,
+  useUnarchiveColumn,
   useUpdateColumn,
 } from "@/hooks/use-columns";
-import { useBoard } from "@/hooks/use-boards";
 import type { BoardColumn, Card } from "@/types/domain";
-import { Button } from "@/components/ui/button";
 import { KanbanColumnSkeleton } from "@/components/ui/kanban-column-skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
-import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
-import { Users, Columns3 } from "lucide-react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type BoardKanbanProps = {
   boardId: string;
-  hideChrome?: boolean;
   filteredColumns?: BoardColumn[];
   isLoadingColumns?: boolean;
   openCardId?: string | null;
@@ -59,14 +65,14 @@ type BoardKanbanProps = {
 
 export function BoardKanban({
   boardId,
-  hideChrome = false,
   filteredColumns,
   isLoadingColumns,
   openCardId: controlledOpenCardId,
   onOpenCardChange,
 }: BoardKanbanProps) {
   const t = useTranslations("kanban");
-  const { data: board } = useBoard(boardId);
+  const tCommon = useTranslations("common");
+  const queryClient = useQueryClient();
   const {
     data: fetchedColumns = [],
     isLoading: fetching,
@@ -77,19 +83,24 @@ export function BoardKanban({
 
   const moveCard = useMoveCard();
   const archiveCard = useArchiveCard();
+  const unarchiveCard = useUnarchiveCard();
   const deleteCard = useDeleteCard();
   const copyCard = useCopyCard();
   const updateColumn = useUpdateColumn();
   const archiveColumn = useArchiveColumn();
+  const unarchiveColumn = useUnarchiveColumn();
   const deleteColumn = useDeleteColumn();
   const moveColumn = useMoveColumn();
+  const createColumn = useCreateColumn();
 
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [activeColumn, setActiveColumn] = useState<BoardColumn | null>(null);
   const [internalOpenCardId, setInternalOpenCardId] = useState<string | null>(
     null,
   );
-  const [membersOpen, setMembersOpen] = useState(false);
+  const [overColumnId, setOverColumnId] = useState<string | null>(null);
+  const dragOrigin = useRef<Card | null>(null);
+  const dragSnapshot = useRef<CardDragSnapshot | null>(null);
 
   const openCardId =
     controlledOpenCardId !== undefined
@@ -101,6 +112,9 @@ export function BoardKanban({
     useSensor(PointerSensor, {
       activationConstraint: { distance: 6 },
     }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -108,42 +122,130 @@ export function BoardKanban({
 
   const columnIds = useMemo(() => columns.map((c) => c.id), [columns]);
 
-  const findColumnIdForCard = useCallback(
-    (cardId: string, overId: string): string | null => {
-      if (columns.some((c) => c.id === overId)) return overId;
-      if (overId.startsWith("droppable-")) {
-        return overId.replace("droppable-", "");
-      }
-      void cardId;
-      return null;
-    },
-    [columns],
-  );
+  function clearDrag() {
+    setActiveCard(null);
+    setActiveColumn(null);
+    setOverColumnId(null);
+    dragOrigin.current = null;
+    dragSnapshot.current = null;
+  }
+
+  function restoreDrag() {
+    if (dragSnapshot.current) {
+      restoreCardDrag(queryClient, dragSnapshot.current);
+    }
+  }
 
   function handleDragStart(event: DragStartEvent) {
     const type = event.active.data.current?.type;
     if (type === "card") {
-      setActiveCard(event.active.data.current?.card as Card);
+      const card = event.active.data.current?.card as Card;
+      if (card.id.startsWith("temp-")) return;
+      setActiveCard(card);
       setActiveColumn(null);
+      dragOrigin.current = card;
+      dragSnapshot.current = snapshotCardDrag(queryClient, boardId, columnIds);
     } else if (type === "column") {
       setActiveColumn(event.active.data.current?.column as BoardColumn);
       setActiveCard(null);
     }
   }
 
-  function handleDragOver(_event: DragOverEvent) {
-    // Optimistic UI is handled on drag end via mutation onMutate
+  function handleDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over || active.data.current?.type !== "card") {
+      setOverColumnId(null);
+      return;
+    }
+    const origin = dragOrigin.current;
+    if (!origin) {
+      setOverColumnId(null);
+      return;
+    }
+
+    const overType = over.data.current?.type as string | undefined;
+    let targetColumnId: string | null = null;
+    if (overType === "column-drop") {
+      targetColumnId = (over.data.current?.columnId as string) ?? null;
+    } else if (overType === "column") {
+      targetColumnId = String(over.id);
+    } else if (overType === "card") {
+      targetColumnId =
+        (over.data.current?.card as Card | undefined)?.columnId ?? null;
+    } else if (String(over.id).startsWith("droppable-")) {
+      targetColumnId = String(over.id).replace("droppable-", "");
+    }
+
+    if (!targetColumnId || targetColumnId.startsWith("temp-")) {
+      setOverColumnId(null);
+      return;
+    }
+
+    const current = findCardPlacement(
+      queryClient,
+      boardId,
+      columnIds,
+      origin.id,
+    );
+    const currentColumnId = current?.columnId ?? origin.columnId;
+    if (
+      currentColumnId === targetColumnId &&
+      origin.columnId === targetColumnId
+    ) {
+      setOverColumnId(targetColumnId);
+      return;
+    }
+
+    const targetCards = readColumnCards(queryClient, boardId, targetColumnId);
+    let overCardId: string | null = null;
+    let placeAfter = false;
+    if (overType === "card" && String(over.id) !== origin.id) {
+      overCardId = String(over.id);
+      const translatedTop = active.rect.current.translated?.top;
+      const mid = over.rect.top + over.rect.height / 2;
+      placeAfter = translatedTop != null && translatedTop > mid;
+    }
+    const insertAt = insertionIndex(
+      targetCards,
+      origin.id,
+      overCardId,
+      placeAfter,
+    );
+    if (
+      current &&
+      current.columnId === targetColumnId &&
+      current.index === insertAt
+    ) {
+      setOverColumnId(targetColumnId);
+      return;
+    }
+
+    relocateCard(
+      queryClient,
+      boardId,
+      columnIds,
+      origin.id,
+      targetColumnId,
+      insertAt,
+    );
+    setOverColumnId(targetColumnId);
+  }
+
+  function handleDragCancel() {
+    restoreDrag();
+    clearDrag();
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    setActiveCard(null);
-    setActiveColumn(null);
-    if (!over || active.id === over.id) return;
-
+    const origin = dragOrigin.current;
+    const snapshot = dragSnapshot.current;
     const activeType = active.data.current?.type as string | undefined;
 
     if (activeType === "column") {
+      clearDrag();
+      if (!over || active.id === over.id) return;
+
       const activeIndex = columns.findIndex((c) => c.id === active.id);
       let overIndex = columns.findIndex((c) => c.id === over.id);
       if (overIndex === -1 && String(over.id).startsWith("droppable-")) {
@@ -165,9 +267,7 @@ export function BoardKanban({
           : columns[overIndex + 1]?.id;
 
       const input =
-        overIndex > activeIndex
-          ? { afterColumnId }
-          : { beforeColumnId };
+        overIndex > activeIndex ? { afterColumnId } : { beforeColumnId };
 
       moveColumn.mutate(
         { id: String(active.id), boardId, input },
@@ -178,100 +278,121 @@ export function BoardKanban({
       return;
     }
 
-    if (activeType === "card") {
-      const card = active.data.current?.card as Card;
-      const sourceColumnId = card.columnId;
+    if (activeType !== "card" || !origin) {
+      clearDrag();
+      return;
+    }
 
-      let targetColumnId: string | null = null;
-      const overType = over.data.current?.type as string | undefined;
+    const placed = findCardPlacement(
+      queryClient,
+      boardId,
+      columnIds,
+      origin.id,
+    );
+    const movedAcross = !!placed && placed.columnId !== origin.columnId;
 
-      if (overType === "column-drop") {
-        targetColumnId = over.data.current?.columnId as string;
-      } else if (overType === "column") {
-        targetColumnId = String(over.id);
-      } else if (overType === "card") {
-        targetColumnId = (over.data.current?.card as Card).columnId;
-      } else {
-        targetColumnId = findColumnIdForCard(
-          String(active.id),
-          String(over.id),
-        );
-      }
+    if (!over) {
+      restoreDrag();
+      clearDrag();
+      return;
+    }
 
-      if (!targetColumnId) return;
-
-      let afterCardId: string | undefined;
-      let beforeCardId: string | undefined;
-
-      if (overType === "card" && over.id !== active.id) {
-        beforeCardId = String(over.id);
-      }
-
+    if (movedAcross && placed) {
+      const list = readColumnCards(queryClient, boardId, placed.columnId);
+      const index = list.findIndex((card) => card.id === origin.id);
+      const next = list
+        .slice(index + 1)
+        .find((card) => !card.id.startsWith("temp-"));
+      const prev = [...list.slice(0, index)]
+        .reverse()
+        .find((card) => !card.id.startsWith("temp-"));
+      clearDrag();
       moveCard.mutate(
         {
-          id: String(active.id),
-          sourceColumnId,
+          id: origin.id,
+          sourceColumnId: origin.columnId,
           input: {
-            columnId: targetColumnId,
-            afterCardId,
-            beforeCardId,
+            columnId: placed.columnId,
+            ...(next
+              ? { beforeCardId: next.id }
+              : prev
+                ? { afterCardId: prev.id }
+                : {}),
           },
         },
         {
-          onError: () => toast.error(t("failedMoveCard")),
+          onError: () => {
+            if (snapshot) restoreCardDrag(queryClient, snapshot);
+            toast.error(t("failedMoveCard"));
+          },
         },
       );
+      return;
     }
+
+    if (snapshot) restoreCardDrag(queryClient, snapshot);
+    clearDrag();
+    if (active.id === over.id) return;
+
+    const card = origin;
+    const sourceColumnId = card.columnId;
+    const overType = over.data.current?.type as string | undefined;
+
+    let targetColumnId: string | null = null;
+    if (overType === "column-drop") {
+      targetColumnId = over.data.current?.columnId as string;
+    } else if (overType === "column") {
+      targetColumnId = String(over.id);
+    } else if (overType === "card") {
+      targetColumnId = (over.data.current?.card as Card).columnId;
+    } else if (String(over.id).startsWith("droppable-")) {
+      targetColumnId = String(over.id).replace("droppable-", "");
+    }
+    if (!targetColumnId || targetColumnId.startsWith("temp-")) return;
+
+    let afterCardId: string | undefined;
+    let beforeCardId: string | undefined;
+
+    if (overType === "card" && over.id !== active.id) {
+      const overCard = over.data.current?.card as Card | undefined;
+      const sameColumn = targetColumnId === sourceColumnId;
+      const movingDown =
+        sameColumn &&
+        overCard != null &&
+        (card.position ?? 0) < (overCard.position ?? 0);
+      if (movingDown) afterCardId = String(over.id);
+      else beforeCardId = String(over.id);
+    }
+
+    moveCard.mutate(
+      {
+        id: String(active.id),
+        sourceColumnId,
+        input: {
+          columnId: targetColumnId,
+          afterCardId,
+          beforeCardId,
+        },
+      },
+      {
+        onError: () => toast.error(t("failedMoveCard")),
+      },
+    );
   }
 
   return (
-    <div
-      className={
-        hideChrome
-          ? "flex h-full flex-col"
-          : "flex h-[calc(100dvh-3rem)] flex-col"
-      }
-    >
-      {!hideChrome && (
-      <header className="flex shrink-0 items-center gap-3 border-b border-border/80 bg-background/90 px-4 py-2.5 backdrop-blur-sm md:px-6">
-        <Button asChild variant="ghost" size="sm" className="cursor-pointer">
-          <Link href="/boards">
-            <ArrowLeft className="me-2 size-4 rtl:rotate-180" />
-            {t("boards")}
-          </Link>
-        </Button>
-        <AppBreadcrumbs boardName={board?.name} />
-        <h1 className="truncate text-base font-semibold tracking-tight sm:hidden md:text-lg">
-          {board?.name ?? t("loadingBoard")}
-        </h1>
-        <div className="ms-auto flex items-center gap-2">
-          {board && <BoardManageMenu board={board} />}
-          <Button
-            variant="outline"
-            size="sm"
-            className="cursor-pointer"
-            onClick={() => setMembersOpen(true)}
-          >
-            <Users className="me-2 size-4" />
-            {t("members")}
-          </Button>
-        </div>
-      </header>
-      )}
-
-      <div className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30 p-4 md:p-6">
+    <div className="flex h-full flex-col">
+      <div
+        dir="ltr"
+        className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30 p-4 md:p-6"
+      >
         {isLoading && <KanbanColumnSkeleton />}
         {isError && (
           <p className="text-sm text-destructive">{t("failedColumns")}</p>
         )}
 
         {!isLoading && !isError && columns.length === 0 && (
-          <EmptyState
-            icon={Columns3}
-            title={t("emptyBoard.title")}
-            description={t("emptyBoard.description")}
-            action={<CreateColumnDialog boardId={boardId} />}
-          />
+          <EmptyBoard boardId={boardId} createColumn={createColumn} />
         )}
 
         {!isLoading && !isError && columns.length > 0 && (
@@ -281,25 +402,41 @@ export function BoardKanban({
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
             <SortableContext
               items={columnIds}
               strategy={horizontalListSortingStrategy}
             >
-              {/* Keep column order LTR for consistent board UX across locales */}
-              <div dir="ltr" className="flex h-full flex-row items-start gap-4">
+              <div className="flex h-full w-max flex-row items-start gap-4">
                 {columns.map((column) => (
                   <Column
                     key={column.id}
                     column={column}
                     columns={columns}
+                    dragOver={overColumnId === column.id}
                     onOpenCard={setOpenCardId}
                     onArchiveCard={(c) =>
                       archiveCard.mutate(
                         { id: c.id, columnId: c.columnId },
                         {
                           onError: () => toast.error(t("failedArchiveCard")),
-                          onSuccess: () => toast.success(t("cardArchived")),
+                          onSuccess: () =>
+                            toast.success(t("cardArchived"), {
+                              action: {
+                                label: tCommon("undo"),
+                                onClick: () =>
+                                  unarchiveCard.mutate(
+                                    { id: c.id, columnId: c.columnId },
+                                    {
+                                      onSuccess: () =>
+                                        toast.success(t("cardRestored")),
+                                      onError: () =>
+                                        toast.error(t("failedArchiveCard")),
+                                    },
+                                  ),
+                              },
+                            }),
                         },
                       )
                     }
@@ -344,7 +481,7 @@ export function BoardKanban({
                       updateColumn.mutate(
                         { id, boardId, input: { title } },
                         {
-                          onError: () => toast.error(t("failedRenameList")),
+                          onError: () => toast.error(t("failedRenameColumn")),
                         },
                       )
                     }
@@ -352,8 +489,23 @@ export function BoardKanban({
                       archiveColumn.mutate(
                         { id, boardId },
                         {
-                          onSuccess: () => toast.success(t("listArchived")),
-                          onError: () => toast.error(t("failedArchiveList")),
+                          onSuccess: () =>
+                            toast.success(t("columnArchived"), {
+                              action: {
+                                label: tCommon("undo"),
+                                onClick: () =>
+                                  unarchiveColumn.mutate(
+                                    { id, boardId },
+                                    {
+                                      onSuccess: () =>
+                                        toast.success(t("columnRestored")),
+                                      onError: () =>
+                                        toast.error(t("failedArchiveColumn")),
+                                    },
+                                  ),
+                              },
+                            }),
+                          onError: () => toast.error(t("failedArchiveColumn")),
                         },
                       )
                     }
@@ -361,8 +513,8 @@ export function BoardKanban({
                       deleteColumn.mutate(
                         { id, boardId },
                         {
-                          onSuccess: () => toast.success(t("listDeleted")),
-                          onError: () => toast.error(t("failedDeleteList")),
+                          onSuccess: () => toast.success(t("columnDeleted")),
+                          onError: () => toast.error(t("failedDeleteColumn")),
                         },
                       )
                     }
@@ -376,18 +528,23 @@ export function BoardKanban({
                         direction === "left"
                           ? { beforeColumnId: columns[targetIdx].id }
                           : { afterColumnId: columns[targetIdx].id };
-                      moveColumn.mutate({ id, boardId, input });
+                      moveColumn.mutate(
+                        { id, boardId, input },
+                        {
+                          onError: () => toast.error(t("failedReorderColumn")),
+                        },
+                      );
                     }}
                   />
                 ))}
-                <CreateColumnDialog boardId={boardId} />
+                <InlineColumnComposer boardId={boardId} />
               </div>
             </SortableContext>
 
             <DragOverlay>
               {activeCard && (
-                <div className="w-64 scale-105 rounded-lg border border-primary/30 bg-card p-2.5 text-sm opacity-95 shadow-md">
-                  <p className="font-medium">{activeCard.title}</p>
+                <div className="w-[268px] rotate-2 cursor-grabbing rounded-lg border border-primary/30 bg-card text-sm shadow-xl">
+                  <TaskCardBody card={activeCard} />
                 </div>
               )}
               {activeColumn && (
@@ -408,15 +565,76 @@ export function BoardKanban({
           if (!open) setOpenCardId(null);
         }}
       />
+    </div>
+  );
+}
 
-      {!hideChrome && (
-      <BoardMembersDialog
-        boardId={boardId}
-        workspaceId={board?.workspaceId}
-        open={membersOpen}
-        onOpenChange={setMembersOpen}
-      />
-      )}
+function EmptyBoard({
+  boardId,
+  createColumn,
+}: {
+  boardId: string;
+  createColumn: ReturnType<typeof useCreateColumn>;
+}) {
+  const t = useTranslations("kanban");
+  const busy = useRef(false);
+  const mounted = useRef(true);
+  const [starting, setStarting] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  async function addStarter() {
+    if (busy.current) return;
+    busy.current = true;
+    setStarting(true);
+    const names = [t("starterTodo"), t("starterInProgress"), t("starterDone")];
+    try {
+      for (const name of names) {
+        await createColumn.mutateAsync({ boardId, name });
+      }
+    } catch {
+      toast.error(t("createColumnFailed"));
+    } finally {
+      busy.current = false;
+      if (mounted.current) setStarting(false);
+    }
+  }
+
+  return (
+    <div dir="auto" className="flex max-w-md flex-col items-start gap-4 py-6">
+      <div>
+        <p className="text-base font-semibold">{t("emptyBoard.title")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("emptyBoard.description")}
+        </p>
+      </div>
+      <button
+        type="button"
+        disabled={starting}
+        onClick={() => void addStarter()}
+        className={cn(
+          "flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-start transition-colors hover:border-primary/40",
+          "disabled:opacity-60",
+        )}
+      >
+        <span className="text-sm text-muted-foreground">
+          {t("useStarterColumns")}
+        </span>
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+          {t("starterTodo")}
+        </span>
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+          {t("starterInProgress")}
+        </span>
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+          {t("starterDone")}
+        </span>
+      </button>
+      <InlineColumnComposer boardId={boardId} defaultOpen />
     </div>
   );
 }

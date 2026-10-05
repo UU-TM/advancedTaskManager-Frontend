@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowRightLeft, Crown, MoreHorizontal } from "lucide-react";
+import { ArrowRightLeft, Crown, LayoutTemplate, MoreHorizontal } from "lucide-react";
 import { boardsApi } from "@/lib/api";
 import { useBoardMembers } from "@/hooks/use-kanban-extras";
 import { useActiveWorkspace } from "@/components/layout/active-workspace-context";
@@ -43,11 +43,13 @@ type BoardManageMenuProps = {
 
 export function BoardManageMenu({ board }: BoardManageMenuProps) {
   const t = useTranslations("workspace");
+  const tTemplates = useTranslations("templates");
   const { user } = useAuth();
   const { workspaces } = useActiveWorkspace();
   const { data: members = [] } = useBoardMembers(board.id);
   const qc = useQueryClient();
 
+  const [templateOpen, setTemplateOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [moveOpen, setMoveOpen] = useState(false);
   const [newOwnerId, setNewOwnerId] = useState("");
@@ -120,14 +122,29 @@ export function BoardManageMenu({ board }: BoardManageMenuProps) {
 
   return (
     <>
-      <SaveAsTemplateDialog boardId={board.id} boardName={board.name} />
+      <SaveAsTemplateDialog
+        boardId={board.id}
+        boardName={board.name}
+        open={templateOpen}
+        onOpenChange={setTemplateOpen}
+        showTrigger={false}
+      />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="cursor-pointer">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            className="cursor-pointer"
+            aria-label={t("manage")}
+          >
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setTemplateOpen(true)}>
+            <LayoutTemplate className="size-3.5" />
+            {tTemplates("saveAsTemplate")}
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTransferOpen(true)}>
             <Crown className="size-3.5" />
             {t("transferOwnership")}

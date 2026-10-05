@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { HOME_ROUTE } from "@/lib/auth/config";
+import { safeNextPath } from "@/lib/safe-next";
 
 interface GuestOnlyProps {
   children: ReactNode;
@@ -18,7 +19,7 @@ export function GuestOnly({ children }: GuestOnlyProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") ?? HOME_ROUTE;
+  const next = safeNextPath(search.get("next"), HOME_ROUTE);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {

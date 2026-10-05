@@ -4,6 +4,7 @@ export {
   getAccessToken,
   configureAuth,
   API_BASE_URL,
+  getClientApiBaseUrl,
   getServerApiBaseUrl,
 } from "./client";
 export { ApiError, SessionExpiredError } from "./errors";

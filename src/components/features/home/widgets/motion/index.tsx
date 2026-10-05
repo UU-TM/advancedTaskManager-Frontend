@@ -82,12 +82,13 @@ export function AnimatedNumber({
   decimals?: number;
 }) {
   const safe = useMotionSafe();
+  const locale = typeof document !== "undefined" ? document.documentElement.lang : "en";
+  const formatted = new Intl.NumberFormat(locale === "fa" ? "fa" : "en", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
   if (!safe) {
-    return (
-      <span className={className}>
-        {value.toFixed(decimals)}
-      </span>
-    );
+    return <span className={className}>{formatted}</span>;
   }
   return (
     <motion.span
@@ -97,7 +98,7 @@ export function AnimatedNumber({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: MOTION.fast }}
     >
-      {value.toFixed(decimals)}
+      {formatted}
     </motion.span>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getAccessToken, API_BASE_URL } from "@/lib/api/client";
+import { getAccessToken, getClientApiBaseUrl } from "@/lib/api/client";
 import { myWorkKeys } from "./use-my-work";
 import { timeEntryKeys } from "./use-time-entries";
+import { columnKeys } from "./use-columns";
 
 /**
  * Authenticated SSE via fetch (EventSource cannot send Authorization headers).
@@ -23,7 +24,7 @@ export function useBoardEvents(boardId?: string) {
 
     void (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/boards/${boardId}/events`, {
+        const res = await fetch(`${getClientApiBaseUrl()}/boards/${boardId}/events`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: controller.signal,
         });
@@ -45,7 +46,7 @@ export function useBoardEvents(boardId?: string) {
             try {
               const event = JSON.parse(line.slice(6)) as { type?: string };
               if (event.type === "connected") continue;
-              void qc.invalidateQueries({ queryKey: ["columns", boardId] });
+              void qc.invalidateQueries({ queryKey: columnKeys.byBoard(boardId) });
               void qc.invalidateQueries({ queryKey: ["cards"] });
               void qc.invalidateQueries({ queryKey: ["board", boardId] });
               void qc.invalidateQueries({ queryKey: ["presence", boardId] });
@@ -77,7 +78,7 @@ export function useMeEvents(enabled = true) {
 
     void (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/me/events`, {
+        const res = await fetch(`${getClientApiBaseUrl()}/me/events`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: controller.signal,
         });

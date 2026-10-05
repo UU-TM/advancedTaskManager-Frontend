@@ -2,7 +2,13 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -84,6 +90,7 @@ export function BoardFiltersBar({
   labels,
 }: BoardFiltersBarProps) {
   const t = useTranslations("boardViews");
+  const tCard = useTranslations("card");
 
   const activeCount = useMemo(
     () => Object.values(filters).filter(Boolean).length,
@@ -91,7 +98,19 @@ export function BoardFiltersBar({
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <Popover>
+    <PopoverTrigger asChild>
+      <Button variant="outline" size="sm" className="cursor-pointer">
+        <Filter className="size-3.5" />
+        {t("filterPriority")}
+        {activeCount > 0 && (
+          <span className="rounded-md bg-primary/15 px-1.5 text-xs font-semibold text-primary">
+            {activeCount}
+          </span>
+        )}
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent className="flex w-64 flex-col gap-2" align="end">
       <Select
         value={filters.assigneeId ?? "all"}
         onValueChange={(v) =>
@@ -150,9 +169,16 @@ export function BoardFiltersBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">{t("filterAll")}</SelectItem>
-          {["LOW", "MEDIUM", "HIGH", "URGENT"].map((p) => (
-            <SelectItem key={p} value={p}>
-              {p}
+          {(
+            [
+              ["LOW", tCard("priorityLow")],
+              ["MEDIUM", tCard("priorityMedium")],
+              ["HIGH", tCard("priorityHigh")],
+              ["URGENT", tCard("priorityUrgent")],
+            ] as const
+          ).map(([value, label]) => (
+            <SelectItem key={value} value={value}>
+              {label}
             </SelectItem>
           ))}
         </SelectContent>
@@ -191,6 +217,7 @@ export function BoardFiltersBar({
           {t("clearFilters")}
         </Button>
       )}
-    </div>
+    </PopoverContent>
+    </Popover>
   );
 }

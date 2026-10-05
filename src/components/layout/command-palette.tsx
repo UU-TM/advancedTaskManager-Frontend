@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import {
   BarChart3,
@@ -63,6 +63,8 @@ const NAV_ITEMS = [
   { href: "/marketplace", icon: Package, labelKey: "marketplace" as const },
   { href: "/billing", icon: CreditCard, labelKey: "billing" as const },
   { href: "/integrations", icon: Plug, labelKey: "integrations" as const },
+  { href: "/workspace", icon: LayoutDashboard, labelKey: "workspace" as const },
+  { href: "/invitations", icon: Bell, labelKey: "invitations" as const },
   { href: "/settings", icon: Settings, labelKey: "settings" as const },
 ];
 
@@ -87,7 +89,6 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const tCommon = useTranslations("common");
   const tAi = useTranslations("ai");
   const router = useRouter();
-  const locale = useLocale();
   const { setTheme, resolvedTheme } = useTheme();
   const { isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -111,7 +112,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.code === "KeyK") {
         e.preventDefault();
         setOpen((prev) => !prev);
       }
@@ -140,7 +141,11 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
     setOpen(false);
   }
 
-  const shortcutLabel = locale === "fa" ? "Ctrl+K" : "⌘K";
+  const [shortcutLabel, setShortcutLabel] = useState("Ctrl+K");
+  useEffect(() => {
+    const platform = navigator.platform ?? "";
+    setShortcutLabel(/Mac|iPhone|iPad/.test(platform) ? "⌘K" : "Ctrl+K");
+  }, []);
   const nlCards = nlSearch.data?.cards ?? [];
 
   return (
@@ -174,12 +179,11 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
             )}
           </CommandEmpty>
 
-          {!q.trim() && (
-            <CommandGroup heading={t("commandNavigation")}>
+          <CommandGroup heading={t("commandNavigation")}>
               {NAV_ITEMS.map(({ href, icon: Icon, labelKey }) => (
                 <CommandItem
                   key={href}
-                  value={`nav-${labelKey}`}
+                  value={`${t(labelKey)} ${labelKey}`}
                   onSelect={() => go(href)}
                 >
                   <Icon className="size-4" />
@@ -187,7 +191,6 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                 </CommandItem>
               ))}
             </CommandGroup>
-          )}
 
           {isNl && nlQuery && (
             <CommandGroup heading={tAi("nlResults")}>

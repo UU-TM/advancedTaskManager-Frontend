@@ -4,7 +4,6 @@ import { Plus_Jakarta_Sans, JetBrains_Mono, Vazirmatn } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { Providers } from "./providers";
 import { PwaRegister } from "@/components/pwa-register";
@@ -13,13 +12,13 @@ import { localeDirection, type Locale } from "@/i18n/config";
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -62,6 +61,7 @@ export default async function RootLayout({
       lang={locale}
       dir={dir}
       suppressHydrationWarning
+      className={fontVariable}
       style={
         {
           "--font-app-sans":
@@ -71,21 +71,16 @@ export default async function RootLayout({
         } as CSSProperties
       }
     >
-      <body
-        className={`${fontVariable} font-sans antialiased bg-background text-foreground`}
-        style={
-          locale === "fa"
-            ? ({
-                fontFamily: "var(--font-vazirmatn), Tahoma, sans-serif",
-              } as CSSProperties)
-            : undefined
-        }
-      >
+      <body className="font-sans antialiased bg-background text-foreground">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             {children}
-            <Toaster />
-            <SonnerToaster richColors closeButton />
+            <SonnerToaster
+              richColors
+              closeButton
+              dir={dir}
+              position={dir === "rtl" ? "top-left" : "top-right"}
+            />
             <PwaRegister />
           </Providers>
         </NextIntlClientProvider>

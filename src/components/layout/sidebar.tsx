@@ -14,6 +14,7 @@ import {
   Home,
   Inbox,
   LayoutDashboard,
+  ListChecks,
   LayoutTemplate,
   Mail,
   Megaphone,
@@ -64,7 +65,7 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
 
   const navItems = [
     { label: t("home"), href: "/home", icon: Home },
-    { label: t("myWork"), href: "/my-work", icon: Inbox },
+    { label: t("myWork"), href: "/my-work", icon: ListChecks },
     { label: t("inbox"), href: "/inbox", icon: Bell },
     {
       label: t("myBoards"),
@@ -115,8 +116,9 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
           key={item.href}
           href={item.href}
           onClick={onNavigate}
+          aria-current={active ? "page" : undefined}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150",
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
             active
               ? "bg-primary/12 font-medium text-primary shadow-sm shadow-primary/10"
               : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",

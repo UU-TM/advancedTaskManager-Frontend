@@ -39,7 +39,7 @@ export function MarketplacePageView() {
         />
       )}
 
-      {!isLoading && packs.length === 0 && (
+      {!isLoading && !isError && packs.length === 0 && (
         <EmptyState
           icon={Package}
           title={t("emptyTitle")}

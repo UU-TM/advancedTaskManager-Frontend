@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { useTranslations } from "next-intl";
 import { useDroppable } from "@dnd-kit/core";
 import {
@@ -12,7 +13,16 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useCards } from "@/hooks/use-card";
 import { Task } from "./Task";
-import { CreateTaskDialog } from "./CreateTaskDialog";
+import { InlineCardComposer } from "./InlineCardComposer";
+import { MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { BoardColumn, Card } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -28,6 +38,7 @@ import {
 type ColumnProps = {
   column: BoardColumn;
   columns: BoardColumn[];
+  dragOver?: boolean;
   onOpenCard: (cardId: string) => void;
   onArchiveCard: (card: Card) => void;
   onDeleteCard: (card: Card) => void;
@@ -42,6 +53,7 @@ type ColumnProps = {
 export function Column({
   column,
   columns,
+  dragOver = false,
   onOpenCard,
   onArchiveCard,
   onDeleteCard,
@@ -53,9 +65,27 @@ export function Column({
   onMoveColumn,
 }: ColumnProps) {
   const t = useTranslations("kanban");
-  const { data: cards = [], isLoading } = useCards(column.id);
+  const pending = column.id.startsWith("temp-");
+  // Filtered boards pass `column.cards`. Unfiltered boards omit it so drag
+  // optimism stays on the per-column query.
+  const embedded = column.cards;
+  const { data: fetchedCards = [], isLoading: fetchingCards } = useCards(
+    embedded || pending ? undefined : column.id,
+  );
+  const cards = embedded ?? (pending ? [] : fetchedCards);
+  const isLoading = embedded || pending ? false : fetchingCards;
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(column.title);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const columnIndex = columns.findIndex((c) => c.id === column.id);
+  const isFirst = columnIndex <= 0;
+  const isLast = columnIndex === columns.length - 1;
+
+  function startRename() {
+    setTitle(column.title);
+    setEditing(true);
+  }
 
   const {
     attributes,
@@ -67,6 +97,7 @@ export function Column({
   } = useSortable({
     id: column.id,
     data: { type: "column", column },
+    disabled: pending,
   });
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
@@ -102,18 +133,23 @@ export function Column({
         <div
           ref={setRef}
           style={style}
+          data-column-id={column.id}
+          dir="auto"
           className={cn(
             "flex w-72 shrink-0 flex-col rounded-xl border border-border bg-muted/50 max-h-[calc(100dvh-9rem)] transition-[box-shadow,border-color,opacity] duration-150",
+            pending && "opacity-70",
             isDragging && "opacity-50 shadow-lg scale-[1.01]",
-            isOver && "ring-2 ring-primary/40 border-primary/30 bg-primary/5",
+            (isOver || dragOver) &&
+              "ring-2 ring-primary/40 border-primary/30 bg-primary/5",
           )}
         >
           <div className="flex items-center gap-1 border-b border-border/80 px-2 py-2.5">
             <button
               type="button"
-              className="cursor-grab touch-manipulation rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
+              className="cursor-grab touch-manipulation rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground disabled:cursor-default disabled:opacity-40"
               {...attributes}
               {...listeners}
+              disabled={pending}
               aria-label={t("dragColumn")}
             >
               <GripVertical className="size-4" />
@@ -123,6 +159,7 @@ export function Column({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={commitRename}
+                onFocus={(e) => e.currentTarget.select()}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") commitRename();
                   if (e.key === "Escape") {
@@ -134,19 +171,52 @@ export function Column({
                 autoFocus
               />
             ) : (
-              <h2
-                className="flex-1 truncate text-sm font-semibold cursor-text"
-                onDoubleClick={() => setEditing(true)}
+              <button
+                type="button"
+                className="flex-1 truncate text-start text-sm font-semibold"
+                onClick={startRename}
               >
                 {column.title}
                 <span className="ms-2 text-xs font-normal text-muted-foreground">
                   {cards.length}
                 </span>
-              </h2>
+              </button>
             )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="icon-xs" aria-label={t("columnActions")}>
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={startRename}>{t("rename")}</DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isFirst}
+                  onClick={() => onMoveColumn(column.id, "left")}
+                >
+                  {t("moveLeft")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isLast}
+                  onClick={() => onMoveColumn(column.id, "right")}
+                >
+                  {t("moveRight")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onArchiveColumn(column.id)}>
+                  {t("archiveColumn")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  {t("deleteColumn")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2.5">
+          <div ref={listRef} className="flex min-h-16 flex-1 flex-col gap-2 overflow-y-auto p-2.5">
             {isLoading &&
               Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-16 w-full rounded-lg" />
@@ -168,29 +238,56 @@ export function Column({
                 />
               ))}
             </SortableContext>
-            <CreateTaskDialog boardId={column.boardId} columnId={column.id} />
+            {!isLoading && cards.length === 0 && (
+              <div className="min-h-16 flex-1" aria-hidden />
+            )}
           </div>
+          {!pending && (
+            <div className="shrink-0 border-t border-border/60 p-2">
+              <InlineCardComposer
+                boardId={column.boardId}
+                columnId={column.id}
+                onCreated={() => {
+                  const list = listRef.current;
+                  if (list) list.scrollTop = list.scrollHeight;
+                }}
+              />
+            </div>
+          )}
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
-        <ContextMenuItem onClick={() => setEditing(true)}>{t("rename")}</ContextMenuItem>
-        <ContextMenuItem onClick={() => onMoveColumn(column.id, "left")}>
+        <ContextMenuItem onClick={startRename}>{t("rename")}</ContextMenuItem>
+        <ContextMenuItem
+          disabled={isFirst}
+          onClick={() => onMoveColumn(column.id, "left")}
+        >
           {t("moveLeft")}
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => onMoveColumn(column.id, "right")}>
+        <ContextMenuItem
+          disabled={isLast}
+          onClick={() => onMoveColumn(column.id, "right")}
+        >
           {t("moveRight")}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => onArchiveColumn(column.id)}>
-          {t("archiveList")}
+          {t("archiveColumn")}
         </ContextMenuItem>
         <ContextMenuItem
           className="text-destructive focus:text-destructive"
-          onClick={() => onDeleteColumn(column.id)}
+          onClick={() => setConfirmDelete(true)}
         >
-          {t("deleteList")}
+          {t("deleteColumn")}
         </ContextMenuItem>
       </ContextMenuContent>
+      <ConfirmDelete
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t("deleteColumnTitle")}
+        description={t("deleteColumnDescription")}
+        onConfirm={() => onDeleteColumn(column.id)}
+      />
     </ContextMenu>
   );
 }

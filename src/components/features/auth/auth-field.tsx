@@ -28,23 +28,28 @@ export function AuthField({
 }: AuthFieldProps) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <Label htmlFor={id}>{label}</Label>
-        {trailing}
-      </div>
+      <Label htmlFor={id}>{label}</Label>
       <div className="relative">
         <Icon
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden
         />
         <Input
           id={id}
           {...props}
           aria-invalid={!!error}
-          className={cn("pl-9", className)}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={cn("ps-9", trailing && "pe-9", className)}
         />
+        {trailing && (
+          <div className="absolute end-1 top-1/2 -translate-y-1/2">{trailing}</div>
+        )}
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

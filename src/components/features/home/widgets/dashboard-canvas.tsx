@@ -28,6 +28,8 @@ import type {
   DashboardWidgetType,
 } from "@/types/domain";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LayoutDashboard } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import {
   Dialog,
@@ -194,11 +196,20 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
 
     const incoming = prefs.layout;
     if (incoming.length === 0) {
+      const initKey = `dashboard-init:${userId}`;
+      const initialized =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(initKey) === "1";
+      if (initialized) {
+        setLayout([]);
+        return;
+      }
       const starter = createStarterLayout(() => uuidv4());
       setLayout(starter);
       persist(starter);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(`${LAYOUT_TIDY_KEY}:${userId}`, "1");
+        window.localStorage.setItem(initKey, "1");
       }
       return;
     }
@@ -216,6 +227,9 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
       return;
     }
 
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(`dashboard-init:${userId}`, "1");
+    }
     setLayout(incoming);
   }, [prefs?.layout, userId, persist, editing]);
 
@@ -446,7 +460,15 @@ export function DashboardCanvas({ headerTitle }: DashboardCanvasProps) {
         aria-live="polite"
         aria-label={effectiveEditing ? t("editMode.editing") : undefined}
       >
-        {isLoading && layout.length === 0 ? (
+        {!isLoading && layout.length === 0 ? (
+          <EmptyState
+            icon={LayoutDashboard}
+            title={t("editMode.addWidget")}
+            action={
+              <Button onClick={() => setAddOpen(true)}>{t("editMode.addWidget")}</Button>
+            }
+          />
+        ) : isLoading && layout.length === 0 ? (
           <div className="grid grid-cols-12 gap-4" dir={isRtl ? "rtl" : "ltr"}>
             {Array.from({ length: 5 }).map((_, i) => (
               <div
