@@ -282,7 +282,7 @@ export function WorkspacePageView() {
 
                 {invitations.length > 0 && (
                   <div className="space-y-2 pt-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <p className="text-sm font-medium text-muted-foreground">
                       {t("pendingInvites")}
                     </p>
                     {invitations.map((inv) => (

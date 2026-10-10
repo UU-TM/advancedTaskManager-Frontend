@@ -92,12 +92,19 @@ export interface Card {
   recurrence?: CardRecurrence;
   recurrenceUntil?: string | null;
   archivedAt?: string | null;
+  /** Set by the server when the card lands in a done column / is archived. */
+  completedAt?: string | null;
   coverColor?: string | null;
   coverAttachmentId?: string | null;
   blockers?: CardDependencyRef[];
   blocked?: CardDependencyRef[];
   isBlocked?: boolean;
   timeSpentMs?: number;
+  locationLat?: number | null;
+  locationLng?: number | null;
+  locationName?: string | null;
+  customFieldValues?: CardCustomFieldValue[];
+  stickers?: CardSticker[];
   _count?: CardCounts;
   createdAt: string;
   updatedAt?: string;
@@ -106,7 +113,13 @@ export interface Card {
 }
 
 export type CardRecurrence = "NONE" | "DAILY" | "WEEKLY" | "MONTHLY";
-export type BoardViewMode = "KANBAN" | "TABLE" | "CALENDAR" | "TIMELINE";
+export type BoardViewMode =
+  | "KANBAN"
+  | "TABLE"
+  | "CALENDAR"
+  | "TIMELINE"
+  | "DASHBOARD"
+  | "MAP";
 
 export interface CardDependencyRef {
   id: string;
@@ -154,51 +167,227 @@ export interface BoardViewPrefs {
   updatedAt: string;
 }
 
+export type AutomationKind =
+  | "RULE"
+  | "CARD_BUTTON"
+  | "BOARD_BUTTON"
+  | "CALENDAR";
+
+export type AutomationTriggerType =
+  | "CARD_MOVED"
+  | "CARD_ASSIGNED"
+  | "DUE_SOON"
+  | "CHECKLIST_COMPLETE"
+  | "GITHUB_PR_MERGED"
+  | "MANUAL"
+  | "SCHEDULE";
+
+export type AutomationActionType =
+  | "MOVE_TO_COLUMN"
+  | "ADD_LABEL"
+  | "REMOVE_LABEL"
+  | "ASSIGN_USER"
+  | "UNASSIGN_USER"
+  | "SET_DUE_DAYS"
+  | "CLEAR_DUE"
+  | "SET_PRIORITY"
+  | "MARK_COMPLETE"
+  | "ARCHIVE_CARD"
+  | "NOTIFY"
+  | "CREATE_REMINDER"
+  | "CREATE_CARD"
+  | "MOVE_ALL_CARDS"
+  | "ARCHIVE_ALL_IN_COLUMN";
+
+export interface AutomationSchedule {
+  frequency: "DAILY" | "WEEKLY" | "MONTHLY";
+  hour: number;
+  minute?: number;
+  /** 0 = Sunday … 6 = Saturday (WEEKLY) */
+  weekday?: number;
+  /** 1–31 (MONTHLY) */
+  dayOfMonth?: number;
+  timezone?: string;
+  lastRunAt?: string;
+}
+
+export interface AutomationAction {
+  type: AutomationActionType;
+  columnId?: string;
+  targetColumnId?: string;
+  labelId?: string;
+  userId?: string;
+  days?: number;
+  message?: string;
+  title?: string;
+  description?: string;
+  priority?: CardPriority;
+}
+
 export interface BoardAutomation {
   id: string;
   boardId: string;
   name: string;
   enabled: boolean;
-  trigger: {
-    type:
-      | "CARD_MOVED"
-      | "CARD_ASSIGNED"
-      | "DUE_SOON"
-      | "CHECKLIST_COMPLETE"
-      | "GITHUB_PR_MERGED";
+  kind?: AutomationKind;
+  trigger?: {
+    type: AutomationTriggerType;
     columnId?: string;
     hoursBeforeDue?: number;
   };
   conditions: Record<string, unknown> | null;
-  actions: Array<{
-    type:
-      | "MOVE_TO_COLUMN"
-      | "ADD_LABEL"
-      | "ASSIGN_USER"
-      | "SET_DUE_DAYS"
-      | "NOTIFY"
-      | "CREATE_REMINDER";
-    columnId?: string;
-    labelId?: string;
-    userId?: string;
-    days?: number;
-    message?: string;
-  }>;
+  actions: AutomationAction[];
+  schedule?: AutomationSchedule | null;
+  buttonLabel?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export type BoardKind = "KANBAN" | "WHITEBOARD";
 
 export interface Board {
   id: string;
   workspaceId: string;
   ownerId?: string;
   name: string;
+  kind?: BoardKind;
   createdAt: string;
   updatedAt: string;
   slug?: string;
   description?: string;
+  backgroundType?: BoardBackgroundType | null;
+  backgroundValue?: string | null;
+  prefs?: BoardPrefs | null;
   columns?: BoardColumn[];
   cards?: Card[];
+}
+
+export type BoardBackgroundType = "COLOR" | "GRADIENT" | "IMAGE";
+
+export interface BoardPrefs {
+  showLabelText?: boolean;
+  coverSize?: "normal" | "full";
+  [key: string]: unknown;
+}
+
+/* ------------------------------------------------------------------ */
+/* Custom fields, power-ups, stickers, board dashboard                */
+/* ------------------------------------------------------------------ */
+
+export type CustomFieldType = "TEXT" | "NUMBER" | "DATE" | "CHECKBOX" | "LIST";
+
+export interface CustomFieldOption {
+  id?: string;
+  label: string;
+  color?: string;
+}
+
+export interface CustomFieldDef {
+  id: string;
+  boardId: string;
+  name: string;
+  type: CustomFieldType;
+  options: CustomFieldOption[] | null;
+  position: number;
+  createdAt: string;
+}
+
+export interface CardCustomFieldValue {
+  fieldId: string;
+  cardId?: string;
+  value: unknown;
+}
+
+export interface BoardPowerUp {
+  packId: string;
+  name: string;
+  description: string;
+  snapshot: unknown;
+  attached: boolean;
+  enabled: boolean;
+  config: Record<string, unknown> | null;
+}
+
+export interface Sticker {
+  id: string;
+  packId: string;
+  name: string;
+  imageUrl: string;
+}
+
+export interface StickerPack {
+  id: string;
+  name: string;
+  description: string;
+  isSystem: boolean;
+  marketplacePackId: string | null;
+  stickers: Sticker[];
+}
+
+export interface CardSticker {
+  id: string;
+  cardId?: string;
+  stickerId: string;
+  name: string;
+  imageUrl: string;
+  x: number;
+  y: number;
+  rotate: number;
+  zIndex: number;
+}
+
+export interface BoardDashboard {
+  boardId: string;
+  generatedAt: string;
+  totals: {
+    cards: number;
+    completed: number;
+    overdue: number;
+    dueSoon: number;
+    unassigned: number;
+    noDueDate: number;
+  };
+  byColumn: { columnId: string; title: string; count: number }[];
+  byLabel: { labelId: string; name: string; color: string; count: number }[];
+  byMember: {
+    userId: string;
+    username: string;
+    count: number;
+    overdue: number;
+  }[];
+}
+
+export interface BoardArchived {
+  columns: BoardColumn[];
+  cards: Card[];
+}
+
+export interface Milestone {
+  id: string;
+  workspaceId: string;
+  name: string;
+  dueDate: string | null;
+  cardIds?: string[];
+  createdAt: string;
+}
+
+export interface SmartList {
+  id: string;
+  userId: string | null;
+  workspaceId: string | null;
+  name: string;
+  filters: unknown;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutboundWebhook {
+  id: string;
+  workspaceId: string;
+  url: string;
+  events: string[];
+  enabled: boolean;
+  createdAt: string;
 }
 
 export type InvitationStatus =
@@ -372,46 +561,6 @@ export interface BoardStar {
   userId: string;
   boardId: string;
   createdAt: string;
-}
-
-export type DashboardWidgetType =
-  | "todo"
-  | "timer"
-  | "activity"
-  | "assigned"
-  | "reminder"
-  | "dueSoon"
-  | "recentActivity"
-  | "starredBoards"
-  | "recentBoards"
-  | "github"
-  | "notifications"
-  | "myBoards"
-  | "checklistPulse"
-  | "weekHours"
-  | "weekStrip";
-
-/** @deprecated Use DashboardWidgetType */
-export type DashboardWidgetId = DashboardWidgetType;
-
-export interface DashboardLayoutItem {
-  i: string;
-  type: DashboardWidgetType;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export interface DashboardPrefs {
-  layout: DashboardLayoutItem[];
-  updatedAt: string;
-}
-
-/** @deprecated legacy shape */
-export interface WidgetPref {
-  id: DashboardWidgetId;
-  hidden: boolean;
 }
 
 export interface PersonalTodo {

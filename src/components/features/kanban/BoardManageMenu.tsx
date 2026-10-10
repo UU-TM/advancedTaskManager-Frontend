@@ -41,27 +41,65 @@ type BoardManageMenuProps = {
   board: Board;
 };
 
-export function BoardManageMenu({ board }: BoardManageMenuProps) {
-  const t = useTranslations("workspace");
-  const tTemplates = useTranslations("templates");
+export function useCanManageBoard(board: Board) {
   const { user } = useAuth();
   const { workspaces } = useActiveWorkspace();
-  const { data: members = [] } = useBoardMembers(board.id);
-  const qc = useQueryClient();
-
-  const [templateOpen, setTemplateOpen] = useState(false);
-  const [transferOpen, setTransferOpen] = useState(false);
-  const [moveOpen, setMoveOpen] = useState(false);
-  const [newOwnerId, setNewOwnerId] = useState("");
-  const [targetWorkspaceId, setTargetWorkspaceId] = useState("");
-  const [dropConfirmNeeded, setDropConfirmNeeded] = useState(false);
-
-  const canManage =
+  return (
     !!user &&
     (board.ownerId === user.id ||
       workspaces.some(
         (w) => w.id === board.workspaceId && w.ownerId === user.id,
-      ));
+      ))
+  );
+}
+
+export type BoardManageDialogsState = {
+  templateOpen: boolean;
+  transferOpen: boolean;
+  moveOpen: boolean;
+  setTemplateOpen: (open: boolean) => void;
+  setTransferOpen: (open: boolean) => void;
+  setMoveOpen: (open: boolean) => void;
+};
+
+export function useBoardManageDialogsState(): BoardManageDialogsState {
+  const [templateOpen, setTemplateOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [moveOpen, setMoveOpen] = useState(false);
+  return {
+    templateOpen,
+    transferOpen,
+    moveOpen,
+    setTemplateOpen,
+    setTransferOpen,
+    setMoveOpen,
+  };
+}
+
+/** Save-as-template, transfer ownership and move-workspace dialogs. */
+export function BoardManageDialogs({
+  board,
+  state,
+}: {
+  board: Board;
+  state: BoardManageDialogsState;
+}) {
+  const t = useTranslations("workspace");
+  const { workspaces } = useActiveWorkspace();
+  const { data: members = [] } = useBoardMembers(board.id);
+  const qc = useQueryClient();
+  const {
+    templateOpen,
+    transferOpen,
+    moveOpen,
+    setTemplateOpen,
+    setTransferOpen,
+    setMoveOpen,
+  } = state;
+
+  const [newOwnerId, setNewOwnerId] = useState("");
+  const [targetWorkspaceId, setTargetWorkspaceId] = useState("");
+  const [dropConfirmNeeded, setDropConfirmNeeded] = useState(false);
 
   const transfer = useMutation({
     mutationFn: (userId: string) => boardsApi.transfer(board.id, userId),
@@ -115,7 +153,6 @@ export function BoardManageMenu({ board }: BoardManageMenuProps) {
     },
   });
 
-  if (!canManage) return null;
 
   const otherWorkspaces = workspaces.filter((w) => w.id !== board.workspaceId);
   const transferCandidates = members.filter((m) => m.userId !== board.ownerId);
@@ -129,36 +166,6 @@ export function BoardManageMenu({ board }: BoardManageMenuProps) {
         onOpenChange={setTemplateOpen}
         showTrigger={false}
       />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            className="cursor-pointer"
-            aria-label={t("manage")}
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTemplateOpen(true)}>
-            <LayoutTemplate className="size-3.5" />
-            {tTemplates("saveAsTemplate")}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTransferOpen(true)}>
-            <Crown className="size-3.5" />
-            {t("transferOwnership")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setMoveOpen(true)}
-            disabled={otherWorkspaces.length === 0}
-          >
-            <ArrowRightLeft className="size-3.5" />
-            {t("moveBoard")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
       <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
         <DialogContent>
           <DialogHeader>
@@ -246,6 +253,53 @@ export function BoardManageMenu({ board }: BoardManageMenuProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+export function BoardManageMenu({ board }: BoardManageMenuProps) {
+  const t = useTranslations("workspace");
+  const tTemplates = useTranslations("templates");
+  const { workspaces } = useActiveWorkspace();
+  const canManage = useCanManageBoard(board);
+  const state = useBoardManageDialogsState();
+
+  if (!canManage) return null;
+
+  const otherWorkspaces = workspaces.filter((w) => w.id !== board.workspaceId);
+
+  return (
+    <>
+      <BoardManageDialogs board={board} state={state} />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            className="cursor-pointer"
+            aria-label={t("manage")}
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => state.setTemplateOpen(true)}>
+            <LayoutTemplate className="size-3.5" />
+            {tTemplates("saveAsTemplate")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => state.setTransferOpen(true)}>
+            <Crown className="size-3.5" />
+            {t("transferOwnership")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => state.setMoveOpen(true)}
+            disabled={otherWorkspaces.length === 0}
+          >
+            <ArrowRightLeft className="size-3.5" />
+            {t("moveBoard")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </>
   );
 }

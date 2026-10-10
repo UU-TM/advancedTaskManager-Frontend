@@ -7,9 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Loader2, Plus } from "lucide-react";
+import { LayoutGrid, Loader2, Plus, Presentation } from "lucide-react";
 import { useCreateBoard } from "@/hooks/use-boards";
 import { ApiError } from "@/lib/api";
+import type { BoardKind } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +24,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
-type FormValues = { name: string };
+type FormValues = { name: string; kind: BoardKind };
 
 interface CreateBoardDialogProps {
   workspaceId: string;
@@ -59,6 +61,7 @@ export function CreateBoardDialog({
           .trim()
           .min(1, tVal("nameRequired"))
           .max(64, tVal("boardNameMax")),
+        kind: z.enum(["KANBAN", "WHITEBOARD"]),
       }),
     [tVal],
   );
@@ -67,11 +70,15 @@ export function CreateBoardDialog({
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", kind: "KANBAN" },
   });
+
+  const kind = watch("kind");
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -79,6 +86,7 @@ export function CreateBoardDialog({
       const board = await createBoard.mutateAsync({
         workspaceId,
         name: values.name,
+        kind: values.kind,
       });
       queryClient.setQueryData(["board", board.id], board);
       reset();
@@ -138,6 +146,43 @@ export function CreateBoardDialog({
               {errors.name && (
                 <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("kindLabel")}</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    {
+                      value: "KANBAN" as const,
+                      icon: LayoutGrid,
+                      title: t("kindKanban"),
+                      desc: t("kindKanbanDesc"),
+                    },
+                    {
+                      value: "WHITEBOARD" as const,
+                      icon: Presentation,
+                      title: t("kindWhiteboard"),
+                      desc: t("kindWhiteboardDesc"),
+                    },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setValue("kind", opt.value)}
+                    className={cn(
+                      "flex flex-col items-start gap-1 rounded-md border p-3 text-start transition-colors",
+                      kind === opt.value
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:bg-muted/50",
+                    )}
+                  >
+                    <opt.icon className="size-4 text-primary" />
+                    <span className="text-sm font-medium">{opt.title}</span>
+                    <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

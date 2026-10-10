@@ -35,7 +35,7 @@ export function WorkloadPageView() {
       {workspaceId && isLoading && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="h-28 rounded-md" />
           ))}
         </div>
       )}
@@ -63,7 +63,7 @@ export function WorkloadPageView() {
             return (
               <div
                 key={a.userId}
-                className="rounded-xl border border-border bg-card p-4"
+                className="rounded-md border border-border bg-card p-4"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate font-medium">{a.username}</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { KeyRound, Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useApiTokens, useRevokeApiToken } from "@/hooks/use-api-tokens";
 import { formatAppDate } from "@/lib/date";
@@ -42,14 +42,9 @@ export function ApiTokensPanel() {
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <KeyRound className="size-5" />
-            </div>
-            <div>
-              <CardTitle>{t("tokens.title")}</CardTitle>
-              <CardDescription>{t("tokens.description")}</CardDescription>
-            </div>
+          <div>
+            <CardTitle>{t("tokens.title")}</CardTitle>
+            <CardDescription>{t("tokens.description")}</CardDescription>
           </div>
           <CreateApiTokenDialog />
         </div>
@@ -142,7 +137,7 @@ export function ApiTokensPanel() {
 
         {!isLoading && revokedTokens.length > 0 && (
           <div className="mt-4 border-t border-border pt-3">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="mb-2 text-sm text-muted-foreground">
               {t("tokens.revokedSection")}
             </p>
             <ul className="space-y-1.5">

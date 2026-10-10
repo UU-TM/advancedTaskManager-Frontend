@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <rect width="800" height="600" fill="#e3ebe7"/>
+  <g fill="none" stroke="#0f766e" stroke-opacity=".22" stroke-width="1.5">
+    <path d="M-20 420C120 340 220 470 360 400S600 300 820 380"/>
+    <path d="M-20 360C120 280 220 410 360 340S600 240 820 320"/>
+    <path d="M-20 300C120 220 220 350 360 280S600 180 820 260"/>
+    <path d="M-20 240C120 160 220 290 360 220S600 120 820 200"/>
+    <path d="M-20 180C120 100 220 230 360 160S600 60 820 140"/>
+    <path d="M-20 480C120 400 220 530 360 460S600 360 820 440"/>
+    <path d="M-20 540C120 460 220 590 360 520S600 420 820 500"/>
+  </g>
+</svg>

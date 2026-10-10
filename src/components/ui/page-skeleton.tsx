@@ -16,7 +16,7 @@ export function PageSkeletonCards({
       )}
     >
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border bg-card p-5">
+        <div key={i} className="rounded-md border border-border bg-card p-5">
           <Skeleton className="mb-4 h-5 w-2/3" />
           <Skeleton className="mb-2 h-1.5 w-full" />
           <Skeleton className="mb-4 h-3 w-1/3" />

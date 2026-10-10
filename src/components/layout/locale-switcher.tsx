@@ -21,7 +21,11 @@ function applyDocumentLocale(next: Locale) {
   document.documentElement.dir = dir;
   document.documentElement.style.setProperty(
     "--font-app-sans",
-    next === "fa" ? "var(--font-vazirmatn)" : "var(--font-plus-jakarta)",
+    next === "fa" ? "var(--font-vazirmatn)" : "var(--font-inter)",
+  );
+  document.documentElement.style.setProperty(
+    "--font-app-display",
+    next === "fa" ? "var(--font-vazirmatn)" : "var(--font-open-runde)",
   );
 }
 

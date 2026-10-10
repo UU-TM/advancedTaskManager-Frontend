@@ -20,6 +20,7 @@ export function createCreateBoardSchema(t: Translate) {
       .trim()
       .min(1, t("nameRequired"))
       .max(64, t("boardNameMax")),
+    kind: z.enum(["KANBAN", "WHITEBOARD"]).optional().default("KANBAN"),
   });
 }
 
@@ -30,6 +31,16 @@ export function createUpdateBoardSchema(t: Translate) {
       .trim()
       .min(1, t("nameRequired"))
       .max(64, t("boardNameMax"))
+      .optional(),
+    backgroundType: z.enum(["COLOR", "GRADIENT", "IMAGE"]).nullable().optional(),
+    backgroundValue: z.string().trim().max(2048).nullable().optional(),
+    prefs: z
+      .object({
+        showLabelText: z.boolean().optional(),
+        coverSize: z.enum(["normal", "full"]).optional(),
+      })
+      .passthrough()
+      .nullable()
       .optional(),
   });
 }

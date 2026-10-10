@@ -216,8 +216,8 @@ export function FormsPageView() {
 
       {isLoading && (
         <div className="space-y-3">
-          <Skeleton className="h-20 w-full rounded-xl" />
-          <Skeleton className="h-20 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-md" />
+          <Skeleton className="h-20 w-full rounded-md" />
         </div>
       )}
 
@@ -238,7 +238,7 @@ export function FormsPageView() {
       )}
 
       {forms.length > 0 && (
-        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+        <ul className="divide-y divide-border overflow-hidden rounded-md border border-border bg-card">
           {forms.map((form) => (
             <li
               key={form.id}

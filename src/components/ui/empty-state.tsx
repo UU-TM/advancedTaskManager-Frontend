@@ -27,7 +27,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-2 py-6 text-center",
+        "flex flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card px-6 py-10 text-center",
         variant === "error" && "text-destructive",
         className,
       )}
@@ -36,7 +36,7 @@ export function EmptyState({
       {Icon && (
         <div
           className={cn(
-            "flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground",
+            "flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground",
             variant === "error" && "bg-destructive/10 text-destructive",
           )}
         >

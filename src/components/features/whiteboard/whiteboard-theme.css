@@ -1,0 +1,74 @@
+/* Kanban paper-and-ink theme overrides for Excalidraw chrome */
+
+.excalidraw-kanban {
+  --color-primary: #357dff;
+  --color-primary-darker: #0d5f59;
+  --color-primary-darkest: #115e59;
+  --color-primary-light: #ccfbf1;
+  --color-primary-light-darker: #99f6e4;
+  --color-on-primary-container: #357dff;
+  --color-surface-lowest: var(--background);
+  --color-surface-low: var(--muted);
+  --color-surface: var(--card);
+  --color-surface-high: var(--secondary);
+  --color-surface-highest: var(--border);
+  --color-on-surface: var(--foreground);
+  --color-gray-10: var(--foreground);
+  --color-gray-20: var(--muted-foreground);
+  --color-gray-40: var(--muted-foreground);
+  --color-gray-60: var(--border);
+  --island-bg-color: var(--card);
+  --button-hover-bg: var(--muted);
+  --button-active-bg: color-mix(in oklab, var(--primary) 14%, transparent);
+  --border-radius-lg: 0.375rem;
+  --border-radius-md: 0.25rem;
+  height: 100%;
+  width: 100%;
+}
+
+.excalidraw-kanban .excalidraw {
+  --color-primary: #357dff;
+  --color-primary-darker: #0d5f59;
+  --color-primary-darkest: #115e59;
+  --color-primary-light: #ccfbf1;
+  height: 100%;
+}
+
+.excalidraw-kanban .excalidraw .Stack,
+.excalidraw-kanban .excalidraw .App-toolbar,
+.excalidraw-kanban .excalidraw .App-menu,
+.excalidraw-kanban .excalidraw .Island {
+  border-radius: 0.375rem !important;
+}
+
+.excalidraw-kanban .excalidraw .ToolIcon__keybinding {
+  opacity: 0.55;
+}
+
+.dark .excalidraw-kanban {
+  --color-primary-light: color-mix(in oklab, #357dff 35%, transparent);
+  --color-primary-light-darker: color-mix(in oklab, #357dff 50%, transparent);
+}
+
+/* Hide Excalidraw marketing, logos, and external promo chrome */
+.excalidraw-kanban .excalidraw .welcome-screen-decor,
+.excalidraw-kanban .excalidraw .welcome-screen-center,
+.excalidraw-kanban .excalidraw .welcome-screen-menu-hint,
+.excalidraw-kanban .excalidraw .welcome-screen-toolbar-hint,
+.excalidraw-kanban .excalidraw .welcome-screen-help-hint,
+.excalidraw-kanban .excalidraw .ExcalidrawLogo,
+.excalidraw-kanban .excalidraw .encrypted-icon,
+.excalidraw-kanban .excalidraw a[href*="excalidraw.com"],
+.excalidraw-kanban .excalidraw a[href*="github.com/excalidraw"],
+.excalidraw-kanban .excalidraw a[href*="discord.gg"],
+.excalidraw-kanban .excalidraw a[href*="discord.com"],
+.excalidraw-kanban .excalidraw a[href*="twitter.com"],
+.excalidraw-kanban .excalidraw a[href*="x.com"],
+.excalidraw-kanban .excalidraw a[href*="linkedin.com"],
+.excalidraw-kanban .excalidraw a[href*="plus.excalidraw"],
+.excalidraw-kanban .excalidraw a[href*="docs.excalidraw"],
+/* External library browser — replaced by in-app Library Store */
+.excalidraw-kanban .excalidraw .library-menu-browse-button,
+.excalidraw-kanban .excalidraw a[href*="libraries.excalidraw"] {
+  display: none !important;
+}

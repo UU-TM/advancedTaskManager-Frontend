@@ -1,0 +1,370 @@
+{
+  "libraries": [
+    {
+      "id": "4vcqDwlkYkX",
+      "name": "Basic shapes",
+      "description": "Basic shapes for simple drawings.",
+      "authors": [
+        {
+          "name": "Pablo Gil Fernández"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/pgilfernandez__basic-shapes.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/pgilfernandez__basic-shapes.png"
+    },
+    {
+      "id": "832Zp5zaukx",
+      "name": "Stick Figures",
+      "description": "Collection of stick figures.",
+      "authors": [
+        {
+          "name": "Youri Tjang"
+        }
+      ],
+      "itemNames": [
+        "Stick man",
+        "Moustache man",
+        "Girl",
+        "Guy",
+        "Grandma",
+        "Child",
+        "Shrug",
+        "Happy",
+        "Sad"
+      ],
+      "source": "/whiteboard-libraries/libs/youritjang__stick-figures.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/youritjang__stick-figures.jpg"
+    },
+    {
+      "id": "1GackrBWvTI",
+      "name": "Sticky Notes",
+      "description": "Post its in every color for your design thinking sessions.",
+      "authors": [
+        {
+          "name": "ferminrp"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/ferminrp__post-it.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/ferminrp__post-it.png"
+    },
+    {
+      "id": "9CN5lxMi2iu",
+      "name": "Shapes for UML & ER Diagrams",
+      "description": "An opinionated selection of shapes for UML & ER diagrams.",
+      "authors": [
+        {
+          "name": "BjoernKW"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/BjoernKW__UML-ER-library.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/BjoernKW__UML-ER-library.png"
+    },
+    {
+      "id": "mzQjGLHnDi",
+      "name": "Software Architecture",
+      "description": "Collection of software architecture components: microservice, database, cache, event bus or pipeline, documents or code, browser, and mobile device",
+      "authors": [
+        {
+          "name": "Youri Tjang"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/youritjang__software-architecture.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/youritjang__software-architecture.png"
+    },
+    {
+      "id": "6llg42UDA6i",
+      "name": "Information Architecture",
+      "description": "A visual vocabulary for describing information architecture and interaction design, by Jesse James Garrett.",
+      "authors": [
+        {
+          "name": "inwardmovement"
+        }
+      ],
+      "itemNames": [
+        "page",
+        "file",
+        "flow reference",
+        "page stack",
+        "file stack",
+        "cluster",
+        "decision point",
+        "conditional branch",
+        "conditonal selector",
+        "concurrent set",
+        "continuation x",
+        "continuation y",
+        "area",
+        "iterative area",
+        "conditional area",
+        "flow area x",
+        "flow area y"
+      ],
+      "source": "/whiteboard-libraries/libs/inwardmovement__information-architecture.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/inwardmovement__information-architecture.jpg"
+    },
+    {
+      "id": "7PMqpVob6wL",
+      "name": "Mobile Kit",
+      "description": "A collection of commonly used mobile screens.",
+      "authors": [
+        {
+          "name": "Sunit Shirke"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/excacomp__mobile-kit.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/excacomp__mobile-kit.png"
+    },
+    {
+      "id": "5Ff6zN0DWnU",
+      "name": "Presentation Templates",
+      "description": "Blank Powerpoint Presentation templates of standard dimensions. Use to create presentation outlines.",
+      "authors": [
+        {
+          "name": "Shin Kim"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/shinkim__presentation-templates.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/shinkim__presentation-templates.png"
+    },
+    {
+      "id": "48KxhBpVriF",
+      "name": "Arduino Boards",
+      "description": "A collection of five Arduino boards: Uno, Uno-clone, Nano, Leonardo, and Mega. The drawings are sized so that when snapped to the grid, lines and arrows will snap to the connections.",
+      "authors": [
+        {
+          "name": "rkjc"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/rkjc__arduino-boards.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/rkjc__arduino-boards.png"
+    },
+    {
+      "id": "2ZWlTmLYsLv",
+      "name": "AWS Architecture Icons",
+      "description": "A collection of AWS Icons",
+      "authors": [
+        {
+          "name": "Narhari Motivaras"
+        }
+      ],
+      "itemNames": [
+        "Lambda",
+        "ELB",
+        "EC2",
+        "Lambda"
+      ],
+      "source": "/whiteboard-libraries/libs/narhari-motivaras__aws-architecture-icons.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/narhari-motivaras__aws-architecture-icons.jpg"
+    },
+    {
+      "id": "Aqkp5tXQHd6",
+      "name": "Technology Logos",
+      "description": "Collection of technology logos mostly from the cloud-native space. Featuring: Kubernetes, Docker, git, Cloud Foundry, Terraform, Spring, Quarkus, Micronaut, Knative, Camunda, Azure, Kafka, Kotlin, OpenStack, paketo.io, Neo4J, Redis",
+      "authors": [
+        {
+          "name": "Matthias Haeussler"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/maeddes__technology-logos.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/maeddes__technology-logos.png"
+    },
+    {
+      "id": "5OOWz0N1Bx6",
+      "name": "Cloud",
+      "description": "Collection of symbols related to cloud artefacts (logos of Kubernetes, Gardener, AWS, Azure, GCP and icons for illustrating architectures).",
+      "authors": [
+        {
+          "name": "rfranzke"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/cloud__cloud.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/cloud__cloud.png"
+    },
+    {
+      "id": "4DI8NDC3gSh",
+      "name": "System Design Template",
+      "description": "A standard structure and process for efficiently creating system designs with fill-in-the blank components.",
+      "authors": [
+        {
+          "name": "James Wiens"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/aretecode__system-design-template.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/aretecode__system-design-template.png"
+    },
+    {
+      "id": "6eXYj0j5qij",
+      "name": "Hexagonal Architecture",
+      "description": "Useful to diagram and learn more about Hexagonal (aka Ports and Adapters) Architecture by Alistair Cockburn and implementation by Jakub Nabrdalik. More information: https://gist.github.com/corlaez/32707a1c41485d056c00251206435c89",
+      "authors": [
+        {
+          "name": "Armando Cordova Pelaez"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/corlaez__hexagonal-architecture.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/corlaez__hexagonal-architecture.png"
+    },
+    {
+      "id": "icrZZOlOr9",
+      "name": "Dev Ops Icons",
+      "description": "A collection of icons for Dev Ops work, including the hashistack: Nomad, Consul, Vault and Packer; Rundeck, Ansible, Jira, VScode, Elasticsearch, Ubuntu, Teams, Thanos, Traefik, Loki, Kubernetes, Openshift, Docker, Terraform, Slurm, Confluence, Github Actions, OpenFaaS and Gitea",
+      "authors": [
+        {
+          "name": "Mark Sharpley"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/markopolo123__dev_ops.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/markopolo123__dev_ops.png"
+    },
+    {
+      "id": "6e2Hj4oZxbi",
+      "name": "GitHub Git Icons",
+      "description": "Basic GitHub Icons for educational purposes. The icons include git branch, git commit, compare, git merge, pull request, pull request closed, and pull request draft",
+      "authors": [
+        {
+          "name": "marwinburesch"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/marwinburesch__github-icons.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/marwinburesch__github-icons.png"
+    },
+    {
+      "id": "55rgwmkZSXc",
+      "name": "Software Logos",
+      "description": "Software architecture logos: archive, database, docker, JSON, Kubernetes, load balancer, Postgres, Redis, Nginx, RabbitMQ, server, chip, reverse proxy, and more.",
+      "authors": [
+        {
+          "name": "drwnio.polyrand.net"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/drwnio__drwnio.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/drwnio__drwnio.png"
+    },
+    {
+      "id": "7qAVkxNcrst",
+      "name": "Front End Tools & Technologies",
+      "description": "A collection of logos related to front end technologies, tools and sites.",
+      "authors": [
+        {
+          "name": "Madhusuthanan-B"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/madhusuthanan-b__front-end-tech-and-tools.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/madhusuthanan-b__front-end-tech-and-tools.PNG"
+    },
+    {
+      "id": "4Q8BNjF7Joo",
+      "name": "Scrum board",
+      "description": "Scrum board for agile development",
+      "authors": [
+        {
+          "name": "Daniel Cortés Pichardo"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/danimaniarqsoft__scrum-board.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/danimaniarqsoft__scrum-board.png"
+    },
+    {
+      "id": "3KltQF0KuFn",
+      "name": "Office Items",
+      "description": "A collection of everyday office items.",
+      "authors": [
+        {
+          "name": "Robin Müller"
+        }
+      ],
+      "itemNames": [
+        "Parcel",
+        "Mail",
+        "Letter",
+        "Colour Pen",
+        "Pencil",
+        "Screen",
+        "Microphone",
+        "Headphone + Mic",
+        "Headphone",
+        "USB-Stick",
+        "CD",
+        "Stamp",
+        "Folder",
+        "Paper Clip",
+        "Eraser",
+        "Disc",
+        "Folder"
+      ],
+      "source": "/whiteboard-libraries/libs/m47812__office-items.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/m47812__office-items.jpg"
+    },
+    {
+      "id": "4AutOE2P3k9",
+      "name": "Forms",
+      "description": "Collection of form components.",
+      "authors": [
+        {
+          "name": "NicolasGoudry@G.Script"
+        }
+      ],
+      "itemNames": [],
+      "source": "/whiteboard-libraries/libs/g-script__forms.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/g-script__forms.png"
+    },
+    {
+      "id": "73c4J61D8Ke",
+      "name": "Data Flow",
+      "description": "For Data Flow diagrams",
+      "authors": [
+        {
+          "name": "Wilian Martinez"
+        }
+      ],
+      "itemNames": [
+        "Process",
+        "Process with number",
+        "Data storage",
+        "External Entity"
+      ],
+      "source": "/whiteboard-libraries/libs/wmartzh__data-flow.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/wmartzh__data-flow.jpg"
+    },
+    {
+      "id": "5AFQOIRuFn5",
+      "name": "Network topology icons",
+      "description": "Several of the most common network topology icons.",
+      "authors": [
+        {
+          "name": "dwelle"
+        }
+      ],
+      "itemNames": [
+        "Computer w/ keyboard (3D)",
+        "Computer w/ keyboard and mouse (3D)",
+        "Computer (3D)",
+        "VPN",
+        "Firewall",
+        "Server",
+        "Switch",
+        "Hub",
+        "Router",
+        "Client"
+      ],
+      "source": "/whiteboard-libraries/libs/dwelle__network-topology-icons.excalidrawlib",
+      "preview": "/whiteboard-libraries/libs/dwelle__network-topology-icons.jpg"
+    }
+  ]
+}

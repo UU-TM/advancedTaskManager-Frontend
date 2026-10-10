@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
-import { motion } from "framer-motion";
 import type { Board, User } from "@/types/domain";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
@@ -30,7 +29,6 @@ interface BoardCardProps {
   favorite: boolean;
   onToggleFavorite: (boardId: string) => void;
   member?: User | null;
-  index?: number;
 }
 
 export function BoardCard({
@@ -38,7 +36,6 @@ export function BoardCard({
   favorite,
   onToggleFavorite,
   member,
-  index = 0,
 }: BoardCardProps) {
   const t = useTranslations("boards");
   const tCommon = useTranslations("common");
@@ -46,20 +43,22 @@ export function BoardCard({
   const memberName = member?.displayName ?? member?.username ?? "?";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: Math.min(index * 0.04, 0.24), ease: "easeOut" }}
-      className="group relative rounded-xl border border-border bg-card text-card-foreground transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md active:translate-y-0 active:scale-[0.99]"
-    >
+    <div className="group relative rounded-[18px] border border-border bg-card text-card-foreground shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_18px_40px_-28px_rgba(0,0,0,0.28)] transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5">
       <Link
         href={`/boards/${board.id}`}
         className="block cursor-pointer p-5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="mb-4 flex items-start justify-between gap-2 pe-8">
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug">
-            {board.name}
-          </h3>
+          <div className="min-w-0 space-y-1">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug">
+              {board.name}
+            </h3>
+            {board.kind === "WHITEBOARD" && (
+              <span className="inline-flex rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {t("kindWhiteboard")}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -107,6 +106,6 @@ export function BoardCard({
           aria-hidden
         />
       </button>
-    </motion.div>
+    </div>
   );
 }

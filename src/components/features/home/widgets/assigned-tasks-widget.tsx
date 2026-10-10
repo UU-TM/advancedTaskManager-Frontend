@@ -272,7 +272,7 @@ export function AssignedTasksWidget() {
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">
                   {card.title}
                 </span>
-                <div className="flex w-28 shrink-0 items-center gap-2">
+                <div className="hidden w-28 shrink-0 items-center gap-2 sm:flex">
                   <Progress
                     value={pct}
                     className="h-1.5 flex-1 bg-muted [&>[data-slot=progress-indicator]]:bg-dashboard-accent"
@@ -300,6 +300,7 @@ export function AssignedTasksWidget() {
           icon={ListChecks}
           title={t("emptyTitle")}
           description={t("emptyDescription")}
+          className="border-0 bg-transparent px-0 py-6"
         />
       )}
     </WidgetShell>

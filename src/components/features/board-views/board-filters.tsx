@@ -2,8 +2,12 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Filter } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label as FieldLabel } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Popover,
   PopoverContent,
@@ -23,15 +27,29 @@ export type BoardFilters = {
   labelId?: string;
   priority?: string;
   due?: "overdue" | "week" | "none";
+  keyword?: string;
+  noLabels?: boolean;
+  assignedToMe?: boolean;
 };
 
 export function filterCards(
   cards: Card[],
   filters: BoardFilters,
+  meId?: string,
 ): Card[] {
   const now = Date.now();
   const week = now + 7 * 24 * 60 * 60 * 1000;
+  const keyword = filters.keyword?.trim().toLowerCase();
   return cards.filter((card) => {
+    if (keyword) {
+      const haystack = `${card.title} ${card.description ?? ""}`.toLowerCase();
+      if (!haystack.includes(keyword)) return false;
+    }
+    if (filters.noLabels && (card.labels ?? []).length > 0) return false;
+    if (filters.assignedToMe) {
+      if (!meId) return false;
+      if (!(card.assignees ?? []).some((a) => a.id === meId)) return false;
+    }
     if (
       filters.assigneeId &&
       !(card.assignees ?? []).some((a) => a.id === filters.assigneeId)
@@ -67,12 +85,15 @@ export function filterCards(
 export function filterColumns(
   columns: BoardColumn[],
   filters: BoardFilters,
+  meId?: string,
 ): BoardColumn[] {
-  const hasFilters = Object.values(filters).some(Boolean);
+  const hasFilters = Object.values(filters).some(
+    (v) => (typeof v === "string" ? v.trim() !== "" : Boolean(v)),
+  );
   if (!hasFilters) return columns;
   return columns.map((col) => ({
     ...col,
-    cards: filterCards(col.cards ?? [], filters),
+    cards: filterCards(col.cards ?? [], filters, meId),
   }));
 }
 
@@ -92,8 +113,13 @@ export function BoardFiltersBar({
   const t = useTranslations("boardViews");
   const tCard = useTranslations("card");
 
+  const { user: me } = useAuth();
+
   const activeCount = useMemo(
-    () => Object.values(filters).filter(Boolean).length,
+    () =>
+      Object.values(filters).filter((v) =>
+        typeof v === "string" ? v.trim() !== "" : Boolean(v),
+      ).length,
     [filters],
   );
 
@@ -104,13 +130,63 @@ export function BoardFiltersBar({
         <Filter className="size-3.5" />
         {t("filterPriority")}
         {activeCount > 0 && (
-          <span className="rounded-md bg-primary/15 px-1.5 text-xs font-semibold text-primary">
+          <span className="rounded bg-foreground px-1.5 text-xs font-semibold text-background">
             {activeCount}
           </span>
         )}
       </Button>
     </PopoverTrigger>
-    <PopoverContent className="flex w-64 flex-col gap-2" align="end">
+    <PopoverContent className="flex w-72 flex-col gap-2" align="end">
+      <div className="relative">
+        <Search className="pointer-events-none absolute start-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={filters.keyword ?? ""}
+          onChange={(e) =>
+            onChange({ ...filters, keyword: e.target.value || undefined })
+          }
+          placeholder={t("filterKeyword")}
+          aria-label={t("filterKeyword")}
+          className="h-8 ps-7 pe-7"
+        />
+        {filters.keyword && (
+          <button
+            type="button"
+            className="absolute end-1.5 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground"
+            aria-label={t("clearFilters")}
+            onClick={() => onChange({ ...filters, keyword: undefined })}
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1.5">
+        <FieldLabel htmlFor="filter-assigned-me" className="cursor-pointer text-xs font-normal">
+          {t("filterAssignedToMe")}
+        </FieldLabel>
+        <Switch
+          id="filter-assigned-me"
+          checked={!!filters.assignedToMe}
+          disabled={!me}
+          onCheckedChange={(on) =>
+            onChange({ ...filters, assignedToMe: on || undefined })
+          }
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1.5">
+        <FieldLabel htmlFor="filter-no-labels" className="cursor-pointer text-xs font-normal">
+          {t("filterNoLabels")}
+        </FieldLabel>
+        <Switch
+          id="filter-no-labels"
+          checked={!!filters.noLabels}
+          onCheckedChange={(on) =>
+            onChange({ ...filters, noLabels: on || undefined })
+          }
+        />
+      </div>
+
       <Select
         value={filters.assigneeId ?? "all"}
         onValueChange={(v) =>
@@ -120,7 +196,7 @@ export function BoardFiltersBar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[140px] cursor-pointer">
+        <SelectTrigger className="h-8 w-full cursor-pointer">
           <SelectValue placeholder={t("filterAssignee")} />
         </SelectTrigger>
         <SelectContent>
@@ -142,7 +218,7 @@ export function BoardFiltersBar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[140px] cursor-pointer">
+        <SelectTrigger className="h-8 w-full cursor-pointer">
           <SelectValue placeholder={t("filterLabel")} />
         </SelectTrigger>
         <SelectContent>
@@ -164,7 +240,7 @@ export function BoardFiltersBar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[120px] cursor-pointer">
+        <SelectTrigger className="h-8 w-full cursor-pointer">
           <SelectValue placeholder={t("filterPriority")} />
         </SelectTrigger>
         <SelectContent>
@@ -196,7 +272,7 @@ export function BoardFiltersBar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[130px] cursor-pointer">
+        <SelectTrigger className="h-8 w-full cursor-pointer">
           <SelectValue placeholder={t("filterDue")} />
         </SelectTrigger>
         <SelectContent>

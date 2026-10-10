@@ -8,6 +8,8 @@ import { githubKeys } from "@/hooks/use-github";
 import { GithubConnectCard } from "./github-connect-card";
 import { ApiTokensPanel } from "./api-tokens-panel";
 import { McpConnectionCard } from "./mcp-connection-card";
+import { WebhooksPanel } from "./webhooks-panel";
+import { ExportPanel } from "./export-panel";
 import { PageHeader } from "@/components/ui/page-header";
 
 /**
@@ -46,6 +48,8 @@ export function IntegrationsPageView() {
 
       <div className="space-y-6">
         <GithubConnectCard />
+        <WebhooksPanel />
+        <ExportPanel />
         <ApiTokensPanel />
         <McpConnectionCard />
       </div>

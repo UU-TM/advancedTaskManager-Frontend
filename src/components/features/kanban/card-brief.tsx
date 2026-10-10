@@ -62,7 +62,7 @@ export function CardBrief({
   if (facts.length === 0) return null;
 
   return (
-    <ul className="space-y-1 rounded-lg bg-muted/60 px-3 py-2 text-sm">
+    <ul className="space-y-1 rounded-md bg-muted/60 px-3 py-2 text-sm">
       {facts.map((fact) => (
         <li key={fact}>{fact}</li>
       ))}

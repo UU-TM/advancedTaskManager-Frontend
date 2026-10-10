@@ -41,6 +41,9 @@ export const updateCardSchema = z.object({
   category: z.string().max(64).nullable().optional(),
   coverColor: z.string().nullable().optional(),
   coverAttachmentId: z.string().uuid().nullable().optional(),
+  locationLat: z.number().min(-90).max(90).nullable().optional(),
+  locationLng: z.number().min(-180).max(180).nullable().optional(),
+  locationName: z.string().max(500).nullable().optional(),
 });
 
 export function createMoveCardSchema(t: Translate) {

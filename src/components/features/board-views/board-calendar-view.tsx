@@ -101,7 +101,7 @@ export function BoardCalendarView({
         </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-px overflow-auto rounded-xl border border-border bg-border">
+      <div className="grid grid-cols-7 gap-px overflow-auto rounded-md border border-border bg-border">
         {weekdayHeaders.map((d) => (
           <div
             key={d}

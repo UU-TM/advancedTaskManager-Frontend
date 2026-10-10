@@ -22,7 +22,7 @@ export function PageHeader({
     return (
       <div
         className={cn(
-          "flex shrink-0 flex-wrap items-end justify-between gap-3 border-b border-border/40 px-4 pb-3 pt-5 md:px-6",
+          "flex shrink-0 flex-wrap items-end justify-between gap-3 border-b border-border/60 bg-card px-4 pb-3 pt-5 md:px-6",
           className,
         )}
       >
@@ -38,21 +38,19 @@ export function PageHeader({
     <div
       className={cn(
         "mb-8 flex flex-wrap items-end justify-between gap-4",
-        sticky && "sticky top-0 z-20 -mx-4 bg-background/90 px-4 py-3 backdrop-blur-sm md:-mx-6 md:px-6",
+        sticky && "sticky top-0 z-20 bg-background py-3",
         className,
       )}
     >
-      <div className="space-y-1">
-        {eyebrow && (
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="text-[length:var(--text-title)] font-semibold tracking-tight">
+      <div className="min-w-0 space-y-1">
+        {eyebrow && <p className="text-sm text-muted-foreground">{eyebrow}</p>}
+        <h1 className="font-display text-[32px] font-semibold leading-[1.05] tracking-[-0.03em] text-foreground">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
       {actions}

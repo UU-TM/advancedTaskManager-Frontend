@@ -1,5 +1,5 @@
-import { PortfolioPageView } from "@/components/features/portfolio/portfolio-page-view";
+import { redirect } from "next/navigation";
 
 export default function PortfolioPage() {
-  return <PortfolioPageView />;
+  redirect("/analytics");
 }

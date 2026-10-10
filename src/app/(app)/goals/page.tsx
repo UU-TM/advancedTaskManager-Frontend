@@ -1,5 +1,5 @@
-import { GoalsPageView } from "@/components/features/goals/goals-page-view";
+import { redirect } from "next/navigation";
 
 export default function GoalsPage() {
-  return <GoalsPageView />;
+  redirect("/planning?tab=goals");
 }

@@ -51,12 +51,15 @@ import {
   useUnarchiveColumn,
   useUpdateColumn,
 } from "@/hooks/use-columns";
-import type { BoardColumn, Card } from "@/types/domain";
+import { boardAmbientTone, wallpaperInk } from "@/lib/board-ambient";
+import type { Board, BoardColumn, Card } from "@/types/domain";
 import { KanbanColumnSkeleton } from "@/components/ui/kanban-column-skeleton";
 import { cn } from "@/lib/utils";
 
 type BoardKanbanProps = {
   boardId: string;
+  /** Board entity — label prefs and other board settings. */
+  board?: Board | null;
   filteredColumns?: BoardColumn[];
   isLoadingColumns?: boolean;
   openCardId?: string | null;
@@ -65,6 +68,7 @@ type BoardKanbanProps = {
 
 export function BoardKanban({
   boardId,
+  board,
   filteredColumns,
   isLoadingColumns,
   openCardId: controlledOpenCardId,
@@ -384,7 +388,7 @@ export function BoardKanban({
     <div className="flex h-full flex-col">
       <div
         dir="ltr"
-        className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30 p-4 md:p-6"
+        className="flex-1 overflow-x-auto overflow-y-hidden p-3 md:p-4"
       >
         {isLoading && <KanbanColumnSkeleton />}
         {isError && (
@@ -392,7 +396,7 @@ export function BoardKanban({
         )}
 
         {!isLoading && !isError && columns.length === 0 && (
-          <EmptyBoard boardId={boardId} createColumn={createColumn} />
+          <EmptyBoard board={board} boardId={boardId} createColumn={createColumn} />
         )}
 
         {!isLoading && !isError && columns.length > 0 && (
@@ -408,13 +412,14 @@ export function BoardKanban({
               items={columnIds}
               strategy={horizontalListSortingStrategy}
             >
-              <div className="flex h-full w-max flex-row items-start gap-4">
+              <div className="flex h-full w-max flex-row items-start gap-3">
                 {columns.map((column) => (
                   <Column
                     key={column.id}
                     column={column}
                     columns={columns}
                     dragOver={overColumnId === column.id}
+                    showLabelText={!!board?.prefs?.showLabelText}
                     onOpenCard={setOpenCardId}
                     onArchiveCard={(c) =>
                       archiveCard.mutate(
@@ -543,12 +548,15 @@ export function BoardKanban({
 
             <DragOverlay>
               {activeCard && (
-                <div className="w-[268px] rotate-2 cursor-grabbing rounded-lg border border-primary/30 bg-card text-sm shadow-xl">
-                  <TaskCardBody card={activeCard} />
+                <div className="relative w-[256px] cursor-grabbing rotate-2 rounded-lg bg-card text-sm text-card-foreground shadow-[var(--kanban-card-shadow-hover)] opacity-95">
+                  <TaskCardBody
+                    card={activeCard}
+                    showLabelText={!!board?.prefs?.showLabelText}
+                  />
                 </div>
               )}
               {activeColumn && (
-                <div className="w-72 scale-105 rounded-xl border border-primary/30 bg-muted p-3 opacity-95 shadow-md">
+                <div className="w-[272px] rounded-2xl bg-[var(--kanban-list-bg)] p-3 text-foreground opacity-95 shadow-[var(--kanban-list-shadow)]">
                   <p className="text-sm font-semibold">{activeColumn.title}</p>
                 </div>
               )}
@@ -570,9 +578,11 @@ export function BoardKanban({
 }
 
 function EmptyBoard({
+  board,
   boardId,
   createColumn,
 }: {
+  board?: Board | null;
   boardId: string;
   createColumn: ReturnType<typeof useCreateColumn>;
 }) {
@@ -604,11 +614,18 @@ function EmptyBoard({
     }
   }
 
+  const tone = boardAmbientTone(board);
+  const ink = wallpaperInk(tone ? tone.dark : false);
+
   return (
-    <div dir="auto" className="flex max-w-md flex-col items-start gap-4 py-6">
+    <div
+      dir="auto"
+      className="flex max-w-md flex-col items-start gap-4 py-6"
+      style={{ color: ink }}
+    >
       <div>
         <p className="text-base font-semibold">{t("emptyBoard.title")}</p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm opacity-80">
           {t("emptyBoard.description")}
         </p>
       </div>
@@ -617,20 +634,20 @@ function EmptyBoard({
         disabled={starting}
         onClick={() => void addStarter()}
         className={cn(
-          "flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2 text-start transition-colors hover:border-primary/40",
+          "flex flex-wrap items-center gap-2 rounded-md border border-dashed border-current/35 px-3 py-2 text-start transition-colors hover:border-current/60",
           "disabled:opacity-60",
         )}
       >
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm opacity-80">
           {t("useStarterColumns")}
         </span>
-        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
           {t("starterTodo")}
         </span>
-        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
           {t("starterInProgress")}
         </span>
-        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
           {t("starterDone")}
         </span>
       </button>

@@ -53,7 +53,7 @@ export function InlineCardComposer({
         type="button"
         variant="ghost"
         size="sm"
-        className="w-full justify-start text-muted-foreground"
+        className="h-8 w-full justify-start rounded-lg px-2 font-normal text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
         onClick={() => setOpen(true)}
       >
         <Plus className="size-4" />
@@ -71,7 +71,7 @@ export function InlineCardComposer({
         rows={2}
         placeholder={t("taskTitlePlaceholder")}
         aria-label={t("addTask")}
-        className="min-h-14 resize-none text-sm"
+        className="min-h-14 resize-none rounded-lg border-0 bg-card text-sm shadow-[var(--kanban-card-shadow)] focus-visible:ring-1"
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {

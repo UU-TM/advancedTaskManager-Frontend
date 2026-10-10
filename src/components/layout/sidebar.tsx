@@ -3,33 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import {
-  BarChart3,
-  Bell,
-  Box,
-  Building2,
-  ClipboardList,
-  Clock,
-  CreditCard,
-  Home,
-  Inbox,
-  LayoutDashboard,
-  ListChecks,
-  LayoutTemplate,
-  Mail,
-  Megaphone,
-  Package,
-  Plug,
-  Plus,
-  Rocket,
-  Settings,
-  Target,
-  Trello,
-  Users,
-} from "lucide-react";
+import { Box, Clock, Megaphone, Plus, Rocket } from "lucide-react";
 import { useHome } from "@/hooks/use-home";
 import { useActiveWorkspace } from "./active-workspace-context";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import {
+  APP_NAV_GENERAL,
+  APP_NAV_INSIGHTS,
+  APP_NAV_MORE,
+  APP_NAV_PLANNING,
+  isNavActive,
+  type AppNavItemDef,
+} from "./app-nav";
 import { HOME_ROUTE } from "@/lib/auth/config";
 import { CreateBoardDialog } from "@/components/features/boards/create-board-dialog";
 import { SessionNavBar } from "@/components/ui/session-nav-bar";
@@ -44,8 +29,8 @@ interface SidebarNavProps {
 }
 
 /**
- * Shared sidebar navigation content (desktop aside + mobile sheet).
- * Profile + theme live in the header user menu.
+ * Shared sidebar navigation content (mobile sheet).
+ * Desktop uses SessionNavBar.
  */
 export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
   const t = useTranslations("nav");
@@ -63,53 +48,34 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
     ),
   ].slice(0, 6);
 
-  const navItems = [
-    { label: t("home"), href: "/home", icon: Home },
-    { label: t("myWork"), href: "/my-work", icon: ListChecks },
-    { label: t("inbox"), href: "/inbox", icon: Bell },
-    {
-      label: t("myBoards"),
-      href: "/boards",
-      icon: Trello,
-      badge: assignedCount > 0 ? assignedCount : undefined,
-    },
-  ] as const;
+  function toItems(defs: AppNavItemDef[]) {
+    return defs.map((def) => ({
+      label: t(def.labelKey),
+      href: def.href,
+      icon: def.icon,
+      badge:
+        def.boardsBadge && assignedCount > 0 ? assignedCount : undefined,
+    }));
+  }
 
-  const insightsItems = [
-    { label: t("analytics"), href: "/analytics", icon: BarChart3 },
-    { label: t("workload"), href: "/workload", icon: Users },
-    { label: t("portfolio"), href: "/portfolio", icon: LayoutDashboard },
-  ] as const;
-
-  const planItems = [
-    { label: t("sprints"), href: "/sprints", icon: Rocket },
-    { label: t("goals"), href: "/goals", icon: Target },
-    { label: t("forms"), href: "/forms", icon: ClipboardList },
-  ] as const;
-
-  const moreItems = [
-    { label: t("templates"), href: "/templates", icon: LayoutTemplate },
-    { label: t("marketplace"), href: "/marketplace", icon: Package },
-    { label: t("workspace"), href: "/workspace", icon: Building2 },
-    { label: t("invitations"), href: "/invitations", icon: Mail },
-    { label: t("integrations"), href: "/integrations", icon: Plug },
-    { label: t("billing"), href: "/billing", icon: CreditCard },
-    { label: t("settings"), href: "/settings", icon: Settings },
-  ] as const;
+  const sections = [
+    { title: t("general"), items: toItems(APP_NAV_GENERAL) },
+    { title: t("insights"), items: toItems(APP_NAV_INSIGHTS) },
+    { title: t("planning"), items: toItems(APP_NAV_PLANNING) },
+    { title: t("more"), items: toItems(APP_NAV_MORE) },
+  ];
 
   function renderNav(
-    items: readonly {
+    items: {
       label: string;
       href: string;
-      icon: typeof Home;
+      icon: AppNavItemDef["icon"];
       badge?: number;
     }[],
   ) {
     return items.map((item) => {
-      const active =
-        pathname === item.href || pathname.startsWith(`${item.href}/`);
+      const active = isNavActive(pathname, item.href);
       const Icon = item.icon;
-      const badge = "badge" in item ? item.badge : undefined;
 
       return (
         <Link
@@ -118,17 +84,17 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
           onClick={onNavigate}
           aria-current={active ? "page" : undefined}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-sidebar-ring",
             active
-              ? "bg-primary/12 font-medium text-primary shadow-sm shadow-primary/10"
-              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",
+              ? "bg-sidebar-accent font-medium text-foreground"
+              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           )}
         >
           <Icon className="size-4 shrink-0" />
           <span className="min-w-0 flex-1 truncate">{item.label}</span>
-          {badge != null && (
-            <span className="rounded-md bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-primary">
-              {badge}
+          {item.badge != null && (
+            <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
+              {item.badge}
             </span>
           )}
         </Link>
@@ -139,7 +105,7 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
   return (
     <div
       className={cn(
-        "flex h-full flex-col bg-sidebar text-sidebar-foreground",
+        "flex h-full flex-col bg-sidebar text-sidebar-foreground backdrop-blur-xl",
         className,
       )}
     >
@@ -151,7 +117,7 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt={tCommon("brand")} width={28} height={28} className="size-7" />
-          <span className="text-base font-semibold tracking-tight">
+          <span className="text-base font-semibold">
             {tCommon("brand")}
           </span>
         </Link>
@@ -163,7 +129,7 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
             workspaceId={workspaceId}
             trigger={
               <Button
-                className="h-10 w-full cursor-pointer justify-start gap-2 rounded-xl font-medium shadow-sm shadow-primary/20 transition-transform duration-150 hover:scale-[1.01] active:scale-[0.99]"
+                className="h-9 w-full cursor-pointer justify-start gap-2 font-medium"
               >
                 <Plus className="size-4" />
                 {t("create")}
@@ -174,7 +140,7 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
           <Button
             variant="outline"
             disabled
-            className="h-10 w-full justify-start gap-2 rounded-xl"
+            className="h-9 w-full justify-start gap-2"
           >
             <Plus className="size-4" />
             {t("create")}
@@ -183,33 +149,14 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
       </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-2.5 pb-4">
-        <div>
-          <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("general")}
-          </p>
-          <div className="space-y-0.5">{renderNav(navItems)}</div>
-        </div>
-
-        <div>
-          <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("insights")}
-          </p>
-          <div className="space-y-0.5">{renderNav(insightsItems)}</div>
-        </div>
-
-        <div>
-          <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("planning")}
-          </p>
-          <div className="space-y-0.5">{renderNav(planItems)}</div>
-        </div>
-
-        <div>
-          <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("more")}
-          </p>
-          <div className="space-y-0.5">{renderNav(moreItems)}</div>
-        </div>
+        {sections.map((section) => (
+          <div key={section.title}>
+            <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {section.title}
+            </p>
+            <div className="space-y-0.5">{renderNav(section.items)}</div>
+          </div>
+        ))}
 
         {workspaceBoards.length > 0 && (
           <div>
@@ -226,16 +173,16 @@ export function SidebarNav({ onNavigate, className }: SidebarNavProps) {
                     href={`/boards/${board.id}`}
                     onClick={onNavigate}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-150",
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150",
                       active
-                        ? "bg-primary/12 font-medium text-primary"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/70",
+                        ? "bg-sidebar-accent font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-sidebar-accent",
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-3.5 shrink-0",
-                        active ? "text-primary" : "text-muted-foreground",
+                        active ? "text-foreground" : "text-muted-foreground",
                       )}
                     />
                     <span className="truncate">{board.name}</span>

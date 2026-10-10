@@ -23,8 +23,9 @@ export const PROTECTED_PREFIXES = [
   "/inbox",
   "/sprints",
   "/goals",
+  "/milestones",
+  "/planning",
   "/portfolio",
-  "/marketplace",
   "/billing",
 ] as const;
 

@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { boardsApi } from "@/lib/api";
-import type { CreateBoardInput } from "@/lib/validators";
+import type { CreateBoardInput, UpdateBoardInput } from "@/lib/validators";
+import type { Board } from "@/types/domain";
 
 export const boardKeys = {
   all: ["boards"] as const,
@@ -36,6 +37,34 @@ export function useUpdateBoard() {
         queryKey: boardKeys.byWorkspace(workspaceId),
       });
     },
+  });
+}
+
+export const boardArchivedKey = (boardId: string) =>
+  ["board", boardId, "archived"] as const;
+
+/** Update board background / prefs (and optionally name). */
+export function useUpdateBoardSettings(boardId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateBoardInput) => boardsApi.update(boardId, input),
+    onSuccess: (board) => {
+      queryClient.setQueryData(["board", boardId], (prev: Board | undefined) =>
+        prev ? { ...prev, ...board } : board,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+      void queryClient.invalidateQueries({
+        queryKey: boardKeys.byWorkspace(board.workspaceId),
+      });
+    },
+  });
+}
+
+export function useBoardArchived(boardId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: boardArchivedKey(boardId ?? ""),
+    queryFn: () => boardsApi.getArchived(boardId!),
+    enabled: !!boardId && enabled,
   });
 }
 

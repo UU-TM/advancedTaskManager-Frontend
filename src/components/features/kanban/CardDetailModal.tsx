@@ -9,9 +9,12 @@ import {
   EyeOff,
   GitBranch,
   Link2,
+  MapPin,
   MessageSquare,
   Paperclip,
   Pencil,
+  SlidersHorizontal,
+  Sticker,
   Timer,
   Trash2,
   Upload,
@@ -81,7 +84,11 @@ import { PRIORITY_COLORS, LABEL_PRESET_COLORS } from "./priority";
 import type { CardPriority, CardRecurrence } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { CardGithubSection } from "./CardGithubSection";
+import { useBoardPowerUps } from "@/hooks/use-power-ups";
+import { isPowerUpEnabled } from "@/lib/power-up-keys";
 import { CardBrief } from "./card-brief";
+import { CardButtonsSection } from "./CardButtonsSection";
+import { CardCustomFields, CardLocation, CardStickers } from "./card-extras";
 import { useAuth } from "@/hooks/use-auth";
 
 type CardDetailModalProps = {
@@ -178,6 +185,13 @@ export function CardDetailModal({
   const { data: columns = [] } = useColumns(boardId);
   const createDep = useCreateDependency();
   const removeDep = useRemoveDependency();
+  const { data: powerUps = [] } = useBoardPowerUps(boardId);
+  const customFieldsOn = isPowerUpEnabled(powerUps, "custom-fields");
+  const mapOn = isPowerUpEnabled(powerUps, "map");
+  const stickersOn = isPowerUpEnabled(powerUps, "stickers");
+  const timeOn = isPowerUpEnabled(powerUps, "time-tracking");
+  const depsOn = isPowerUpEnabled(powerUps, "dependencies");
+  const githubOn = isPowerUpEnabled(powerUps, "github");
   const { data: activeTimer } = useActiveTimeEntry();
   const startTimer = useStartTimeEntry();
   const stopTimer = useStopTimeEntry();
@@ -286,7 +300,7 @@ export function CardDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-xl sm:max-w-3xl">
+      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-md border-border bg-card p-0 shadow-xl sm:max-w-3xl">
         <DialogHeader className="relative shrink-0 space-y-0 border-b border-border/80 text-start">
           <DialogTitle className="sr-only">{t("details")}</DialogTitle>
           {saveState !== "idle" && (
@@ -297,7 +311,7 @@ export function CardDetailModal({
           {card?.coverColor ? (
             <motion.div
               layout
-              className="rounded-t-2xl px-5 pb-4 pt-10 pe-12"
+              className="rounded-t-md px-5 pb-4 pt-10 pe-12"
               style={{ backgroundColor: card.coverColor }}
               transition={{ duration: 0.25 }}
             >
@@ -344,6 +358,7 @@ export function CardDetailModal({
                   .map((dep) => dep.blockerTitle)}
               />
             )}
+            {cardId && <CardButtonsSection boardId={boardId} cardId={cardId} />}
             <Section title={t("description")} delay={0.02}>
               <Textarea
                 value={description}
@@ -445,7 +460,7 @@ export function CardDetailModal({
                       <AnimatePresence>
                         {celebrating && (
                           <motion.div
-                            className="pointer-events-none absolute inset-0 rounded-xl border-2 border-success/50"
+                            className="pointer-events-none absolute inset-0 rounded-md border-2 border-success/50"
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: [0, 1, 0], scale: [0.98, 1.01, 1.02] }}
                             exit={{ opacity: 0 }}
@@ -634,7 +649,7 @@ export function CardDetailModal({
                 {attachments.map((att) => (
                   <li
                     key={att.id}
-                    className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/70"
+                    className="flex items-center gap-2 rounded-md bg-muted/40 px-3 py-2 text-sm transition-colors hover:bg-muted/70"
                   >
                     <span className="flex-1 truncate">{att.filename}</span>
                     <Button
@@ -687,7 +702,7 @@ export function CardDetailModal({
                   </li>
                 ))}
               </ul>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/30 hover:bg-muted hover:text-foreground">
                 <Upload className="size-4" />
                 {t("uploadFile")}
                 <input
@@ -708,6 +723,39 @@ export function CardDetailModal({
                 />
               </label>
             </Section>
+
+            {cardId && customFieldsOn && (
+              <Section
+                title={t("customFields")}
+                icon={<SlidersHorizontal className="size-3.5" />}
+                delay={0.12}
+              >
+                <CardCustomFields cardId={cardId} boardId={boardId} card={card} />
+              </Section>
+            )}
+
+            {card && mapOn && (
+              <Section
+                title={t("location")}
+                icon={<MapPin className="size-3.5" />}
+                delay={0.14}
+              >
+                <CardLocation
+                  key={`${card.id}-${card.locationLat ?? ""}-${card.locationLng ?? ""}-${card.locationName ?? ""}`}
+                  card={card}
+                />
+              </Section>
+            )}
+
+            {cardId && stickersOn && (
+              <Section
+                title={t("stickers")}
+                icon={<Sticker className="size-3.5" />}
+                delay={0.16}
+              >
+                <CardStickers cardId={cardId} columnId={card?.columnId} />
+              </Section>
+            )}
               </TabsContent>
 
               <TabsContent value="activity" className="mt-0 space-y-4">
@@ -732,7 +780,7 @@ export function CardDetailModal({
                           {c.author.username.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 rounded-xl bg-muted/40 px-3 py-2">
+                      <div className="flex-1 rounded-md bg-muted/40 px-3 py-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-medium">
                             {c.author.username}
@@ -1081,6 +1129,14 @@ export function CardDetailModal({
                     );
                   }}
                 />
+                {card?.completedAt && (
+                  <p className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
+                    <Check className="size-3" />
+                    {t("completedOn", {
+                      date: formatAppDate(card.completedAt, "d MMM", locale) ?? "",
+                    })}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -1146,6 +1202,7 @@ export function CardDetailModal({
               </div>
               </div>
 
+              {(timeOn || activeTimer?.cardId === cardId) && (
               <div className="space-y-1">
                 <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Timer className="size-3" /> Timer
@@ -1180,7 +1237,9 @@ export function CardDetailModal({
                   </Button>
                 )}
               </div>
+              )}
 
+              {depsOn && (
               <div className="space-y-1">
                 <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                   <Link2 className="size-3" /> Blocked by
@@ -1239,8 +1298,9 @@ export function CardDetailModal({
                   </Button>
                 </div>
               </div>
+              )}
 
-              {cardId && card && (
+              {githubOn && cardId && card && (
                 <div className="space-y-1">
                   <Label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                     <GitBranch className="size-3" /> GitHub

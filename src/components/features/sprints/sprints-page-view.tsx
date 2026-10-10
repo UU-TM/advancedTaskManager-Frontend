@@ -26,7 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function SprintsPageView() {
+export function SprintsPageView({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations("sprints");
   const { workspaceId } = useActiveWorkspace();
   const { data: sprints = [], isLoading, isError } = useSprints(workspaceId);
@@ -39,82 +39,94 @@ export function SprintsPageView() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const createDialog = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="cursor-pointer" disabled={!workspaceId}>
+          <Plus className="me-1.5 size-4" />
+          {t("create")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!workspaceId || !name.trim() || !startDate || !endDate)
+              return;
+            createSprint.mutate(
+              {
+                name: name.trim(),
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+              },
+              {
+                onSuccess: () => {
+                  toast.success(t("created"));
+                  setOpen(false);
+                  setName("");
+                  setStartDate("");
+                  setEndDate("");
+                },
+                onError: () => toast.error(t("createFailed")),
+              },
+            );
+          }}
+        >
+          <div className="space-y-2">
+            <Label>{t("name")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>{t("start")}</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("end")}</Label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={createSprint.isPending}
+          >
+            {t("create")}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 md:px-6">
-      <PageHeader
-        title={t("title")}
-        description={t("subtitle")}
-        actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="cursor-pointer" disabled={!workspaceId}>
-                <Plus className="me-1.5 size-4" />
-                {t("create")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("createTitle")}</DialogTitle>
-              </DialogHeader>
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!workspaceId || !name.trim() || !startDate || !endDate)
-                    return;
-                  createSprint.mutate(
-                    {
-                      name: name.trim(),
-                      startDate: new Date(startDate).toISOString(),
-                      endDate: new Date(endDate).toISOString(),
-                    },
-                    {
-                      onSuccess: () => {
-                        toast.success(t("created"));
-                        setOpen(false);
-                        setName("");
-                        setStartDate("");
-                        setEndDate("");
-                      },
-                      onError: () => toast.error(t("createFailed")),
-                    },
-                  );
-                }}
-              >
-                <div className="space-y-2">
-                  <Label>{t("name")}</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>{t("start")}</Label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t("end")}</Label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full cursor-pointer"
-                  disabled={createSprint.isPending}
-                >
-                  {t("create")}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+    <div
+      className={
+        embedded
+          ? "space-y-6"
+          : "mx-auto max-w-4xl space-y-8 px-4 py-6 md:px-6"
+      }
+    >
+      {embedded ? (
+        <div className="flex justify-end">{createDialog}</div>
+      ) : (
+        <PageHeader
+          title={t("title")}
+          description={t("subtitle")}
+          actions={createDialog}
+        />
+      )}
 
       {!workspaceId && (
         <EmptyState
@@ -124,7 +136,7 @@ export function SprintsPageView() {
         />
       )}
 
-      {isLoading && <Skeleton className="h-32 w-full rounded-xl" />}
+      {isLoading && <Skeleton className="h-32 w-full rounded-md" />}
 
       {isError && (
         <EmptyState
@@ -147,7 +159,7 @@ export function SprintsPageView() {
           {sprints.map((s) => (
             <li
               key={s.id}
-              className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+              className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card px-4 py-3"
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{s.name}</p>

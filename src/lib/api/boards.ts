@@ -1,5 +1,7 @@
 import type {
   Board,
+  BoardArchived,
+  BoardDashboard,
   BoardColumn,
   BoardMember,
   ColumnMoveInput,
@@ -16,7 +18,10 @@ export const boardsApi = {
   async create(input: CreateBoardInput): Promise<Board> {
     return apiFetch<Board>(`/workspaces/${input.workspaceId}/boards`, {
       method: "POST",
-      body: JSON.stringify({ name: input.name }),
+      body: JSON.stringify({
+        name: input.name,
+        kind: input.kind ?? "KANBAN",
+      }),
     });
   },
 
@@ -44,6 +49,14 @@ export const boardsApi = {
 
   async remove(id: string): Promise<void> {
     await apiFetch<void>(`/boards/${id}`, { method: "DELETE" });
+  },
+
+  async getArchived(boardId: string): Promise<BoardArchived> {
+    return apiFetch<BoardArchived>(`/boards/${boardId}/archived`);
+  },
+
+  async getDashboard(boardId: string): Promise<BoardDashboard> {
+    return apiFetch<BoardDashboard>(`/boards/${boardId}/dashboard`);
   },
 
   async addColumn(input: CreateColumnInput): Promise<BoardColumn> {

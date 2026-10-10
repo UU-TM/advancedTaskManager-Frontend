@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -10,8 +11,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
-import { useCards } from "@/hooks/use-card";
+import {
+  useArchiveCard,
+  useCards,
+  useCopyCard,
+  useMoveCard,
+  useUnarchiveCard,
+} from "@/hooks/use-card";
+import { useCreateColumn } from "@/hooks/use-columns";
 import { Task } from "./Task";
 import { InlineCardComposer } from "./InlineCardComposer";
 import { MoreHorizontal } from "lucide-react";
@@ -21,6 +28,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { BoardColumn, Card } from "@/types/domain";
@@ -32,6 +42,9 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -48,7 +61,11 @@ type ColumnProps = {
   onArchiveColumn: (columnId: string) => void;
   onDeleteColumn: (columnId: string) => void;
   onMoveColumn: (columnId: string, direction: "left" | "right") => void;
+  /** Board pref: show label names on label bars. */
+  showLabelText?: boolean;
 };
+
+type SortMode = "title" | "due";
 
 export function Column({
   column,
@@ -63,8 +80,17 @@ export function Column({
   onArchiveColumn,
   onDeleteColumn,
   onMoveColumn,
+  showLabelText,
 }: ColumnProps) {
   const t = useTranslations("kanban");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const moveCard = useMoveCard();
+  const archiveCard = useArchiveCard();
+  const unarchiveCard = useUnarchiveCard();
+  const copyCard = useCopyCard();
+  const createColumn = useCreateColumn();
+  const [listBusy, setListBusy] = useState(false);
   const pending = column.id.startsWith("temp-");
   // Filtered boards pass `column.cards`. Unfiltered boards omit it so drag
   // optimism stays on the per-column query.
@@ -117,6 +143,99 @@ export function Column({
 
   const cardIds = cards.map((c) => c.id);
 
+  async function sortCards(mode: SortMode) {
+    if (listBusy || cards.length < 2) return;
+    const sorted = [...cards].sort((a, b) => {
+      if (mode === "title") {
+        return a.title.localeCompare(b.title, locale, { sensitivity: "base" });
+      }
+      const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      if (ad === bd) return 0;
+      return ad < bd ? -1 : 1;
+    });
+    // Move only what is out of place, simulating the server-side order.
+    const order = cards.map((c) => c.id);
+    setListBusy(true);
+    try {
+      for (let i = 0; i < sorted.length; i++) {
+        const id = sorted[i].id;
+        if (order[i] === id) continue;
+        const input =
+          i === 0
+            ? { columnId: column.id, beforeCardId: order[0] }
+            : { columnId: column.id, afterCardId: sorted[i - 1].id };
+        await moveCard.mutateAsync({
+          id,
+          sourceColumnId: column.id,
+          input,
+        });
+        order.splice(order.indexOf(id), 1);
+        order.splice(i, 0, id);
+      }
+      toast.success(t("listSorted"));
+    } catch {
+      toast.error(t("failedSortList"));
+    } finally {
+      setListBusy(false);
+    }
+  }
+
+  async function archiveAllCards() {
+    if (listBusy || cards.length === 0) return;
+    const targets = [...cards];
+    setListBusy(true);
+    try {
+      for (const c of targets) {
+        await archiveCard.mutateAsync({ id: c.id, columnId: column.id });
+      }
+      toast.success(t("allCardsArchived", { count: targets.length }), {
+        action: {
+          label: tCommon("undo"),
+          onClick: () => {
+            void Promise.all(
+              targets.map((c) =>
+                unarchiveCard.mutateAsync({ id: c.id, columnId: column.id }),
+              ),
+            ).catch(() => toast.error(t("failedArchiveCard")));
+          },
+        },
+      });
+    } catch {
+      toast.error(t("failedArchiveCard"));
+    } finally {
+      setListBusy(false);
+    }
+  }
+
+  async function copyList() {
+    if (listBusy || pending) return;
+    setListBusy(true);
+    try {
+      const suffix = t("listCopySuffix");
+      const name = `${column.title.slice(0, Math.max(1, 40 - suffix.length))}${suffix}`;
+      const created = await createColumn.mutateAsync({
+        boardId: column.boardId,
+        name,
+      });
+      for (const c of cards) {
+        await copyCard.mutateAsync({
+          id: c.id,
+          input: {
+            columnId: created.id,
+            includeChecklists: true,
+            includeLabels: true,
+          },
+        });
+      }
+      toast.success(t("listCopied"));
+    } catch {
+      toast.error(t("failedCopyList"));
+    } finally {
+      setListBusy(false);
+    }
+  }
+
   function commitRename() {
     setEditing(false);
     const next = title.trim();
@@ -136,45 +255,51 @@ export function Column({
           data-column-id={column.id}
           dir="auto"
           className={cn(
-            "flex w-72 shrink-0 flex-col rounded-xl border border-border bg-muted/50 max-h-[calc(100dvh-9rem)] transition-[box-shadow,border-color,opacity] duration-150",
+            "flex w-[272px] shrink-0 flex-col rounded-2xl pb-1 max-h-[calc(100dvh-11rem)]",
+            "bg-[var(--kanban-list-bg)] text-foreground shadow-[var(--kanban-list-shadow)]",
+            "transition-[box-shadow,opacity,background-color] duration-150",
             pending && "opacity-70",
-            isDragging && "opacity-50 shadow-lg scale-[1.01]",
+            isDragging && "opacity-50",
             (isOver || dragOver) &&
-              "ring-2 ring-primary/40 border-primary/30 bg-primary/5",
+              "bg-[color-mix(in_oklab,var(--kanban-list-bg)_88%,var(--primary))]",
           )}
         >
-          <div className="flex items-center gap-1 border-b border-border/80 px-2 py-2.5">
-            <button
-              type="button"
-              className="cursor-grab touch-manipulation rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground disabled:cursor-default disabled:opacity-40"
-              {...attributes}
-              {...listeners}
-              disabled={pending}
-              aria-label={t("dragColumn")}
-            >
-              <GripVertical className="size-4" />
-            </button>
+          {/* Header doubles as list drag handle (Trello-style) */}
+          <div
+            className={cn(
+              "flex items-start gap-1 rounded-t-2xl px-2 pt-2",
+              !pending && "cursor-grab active:cursor-grabbing touch-manipulation",
+            )}
+            {...attributes}
+            {...listeners}
+          >
             {editing ? (
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={commitRename}
                 onFocus={(e) => e.currentTarget.select()}
+                onPointerDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
+                  e.stopPropagation();
                   if (e.key === "Enter") commitRename();
                   if (e.key === "Escape") {
                     setTitle(column.title);
                     setEditing(false);
                   }
                 }}
-                className="h-7 text-sm font-semibold"
+                className="h-8 flex-1 border-transparent bg-card text-sm font-semibold shadow-[var(--kanban-card-shadow)]"
                 autoFocus
               />
             ) : (
               <button
                 type="button"
-                className="flex-1 truncate text-start text-sm font-semibold"
-                onClick={startRename}
+                className="min-h-8 flex-1 truncate rounded-md px-2 py-1.5 text-start text-sm font-semibold leading-5 text-foreground"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  startRename();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 {column.title}
                 <span className="ms-2 text-xs font-normal text-muted-foreground">
@@ -184,7 +309,15 @@ export function Column({
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon-xs" aria-label={t("columnActions")}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="mt-0.5 shrink-0 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                  aria-label={t("columnActions")}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -203,6 +336,29 @@ export function Column({
                   {t("moveRight")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={pending || listBusy} onClick={() => void copyList()}>
+                  {t("copyList")}
+                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger disabled={pending || listBusy || cards.length < 2}>
+                    {t("sortCards")}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => void sortCards("title")}>
+                      {t("sortByTitle")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => void sortCards("due")}>
+                      {t("sortByDue")}
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuItem
+                  disabled={pending || listBusy || cards.length === 0}
+                  onClick={() => void archiveAllCards()}
+                >
+                  {t("archiveAllCards")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onArchiveColumn(column.id)}>
                   {t("archiveColumn")}
                 </DropdownMenuItem>
@@ -216,10 +372,16 @@ export function Column({
             </DropdownMenu>
           </div>
 
-          <div ref={listRef} className="flex min-h-16 flex-1 flex-col gap-2 overflow-y-auto p-2.5">
+          <div
+            ref={listRef}
+            className="flex min-h-2 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-1 pt-1"
+          >
             {isLoading &&
               Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                <Skeleton
+                  key={i}
+                  className="h-14 w-full rounded-lg shadow-[var(--kanban-card-shadow)]"
+                />
               ))}
             <SortableContext
               items={cardIds}
@@ -235,15 +397,16 @@ export function Column({
                   onDelete={onDeleteCard}
                   onCopy={onCopyCard}
                   onMoveTo={onMoveCardTo}
+                  showLabelText={showLabelText}
                 />
               ))}
             </SortableContext>
             {!isLoading && cards.length === 0 && (
-              <div className="min-h-16 flex-1" aria-hidden />
+              <div className="min-h-8 flex-1" aria-hidden />
             )}
           </div>
           {!pending && (
-            <div className="shrink-0 border-t border-border/60 p-2">
+            <div className="shrink-0 px-2 pb-1">
               <InlineCardComposer
                 boardId={column.boardId}
                 columnId={column.id}
@@ -269,6 +432,29 @@ export function Column({
           onClick={() => onMoveColumn(column.id, "right")}
         >
           {t("moveRight")}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem disabled={pending || listBusy} onClick={() => void copyList()}>
+          {t("copyList")}
+        </ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger disabled={pending || listBusy || cards.length < 2}>
+            {t("sortCards")}
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem onClick={() => void sortCards("title")}>
+              {t("sortByTitle")}
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => void sortCards("due")}>
+              {t("sortByDue")}
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuItem
+          disabled={pending || listBusy || cards.length === 0}
+          onClick={() => void archiveAllCards()}
+        >
+          {t("archiveAllCards")}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => onArchiveColumn(column.id)}>

@@ -2,16 +2,13 @@
 
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { motion } from "framer-motion";
-import { CalendarDays } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useDashboardDate } from "@/components/layout/dashboard-date-context";
 import { useHome } from "@/hooks/use-home";
 import { formatAppDate } from "@/lib/date";
 import type { Locale } from "@/i18n/config";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WidgetShell } from "./widget-shell";
-import { useMotionSafe } from "./motion";
 import { cn } from "@/lib/utils";
 
 export function WeekStripWidget() {
@@ -19,7 +16,7 @@ export function WeekStripWidget() {
   const locale = useLocale() as Locale;
   const { selectedDate, setSelectedDate } = useDashboardDate();
   const { data, isLoading } = useHome();
-  const safe = useMotionSafe();
+  const safe = !useReducedMotion();
 
   const days = useMemo(() => {
     const start = new Date(selectedDate);
@@ -42,16 +39,11 @@ export function WeekStripWidget() {
     return map;
   }, [data?.assignedCards]);
 
-  const weekDueCount = useMemo(
-    () => days.reduce((n, day) => n + (dueByDay.get(day.toDateString()) ?? 0), 0),
-    [days, dueByDay],
-  );
-
   return (
     <WidgetShell>
       <h2 className="mb-4 text-base font-semibold">{t("title")}</h2>
       {isLoading && <Skeleton className="h-16 w-full" />}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-2" dir="ltr">
         {days.map((day, i) => {
           const key = day.toDateString();
           const count = dueByDay.get(key) ?? 0;
@@ -74,10 +66,10 @@ export function WeekStripWidget() {
                 setSelectedDate(next);
               }}
               className={cn(
-                "flex cursor-pointer flex-col items-center rounded-2xl border px-1 py-2 transition-colors",
+                "flex cursor-pointer flex-col items-center rounded-md border px-1 py-2 transition-colors",
                 active
-                  ? "border-dashboard-accent bg-dashboard-accent/10"
-                  : "border-transparent bg-muted/40 hover:bg-muted",
+                  ? "border-[#357dff] bg-[#357dff]/10"
+                  : "border-transparent bg-muted hover:bg-muted/70",
               )}
             >
               <span className="text-[10px] uppercase text-muted-foreground">
@@ -88,7 +80,7 @@ export function WeekStripWidget() {
                 {Array.from({ length: Math.min(count, 3) }).map((_, j) => (
                   <span
                     key={j}
-                    className="size-1.5 rounded-full bg-dashboard-accent"
+                    className="size-1.5 rounded-full bg-[#357dff]"
                   />
                 ))}
               </span>
@@ -96,13 +88,8 @@ export function WeekStripWidget() {
           );
         })}
       </div>
-      {!isLoading && weekDueCount === 0 && (
-        <EmptyState
-          icon={CalendarDays}
-          title={t("emptyTitle")}
-          description={t("emptyDescription")}
-          className="py-3"
-        />
+      {!isLoading && (
+        <p className="mt-3 text-xs text-muted-foreground">{t("hint")}</p>
       )}
     </WidgetShell>
   );

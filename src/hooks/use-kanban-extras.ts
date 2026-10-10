@@ -10,6 +10,7 @@ import {
   boardsApi,
 } from "@/lib/api";
 import { cardKeys } from "./use-card";
+import { columnKeys } from "./use-columns";
 
 export const labelKeys = {
   byBoard: (boardId: string) => ["labels", boardId] as const,
@@ -51,6 +52,37 @@ export function useCreateLabel(boardId: string) {
       labelsApi.create(boardId, input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: labelKeys.byBoard(boardId) });
+    },
+  });
+}
+
+export function useUpdateLabel(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...input
+    }: {
+      id: string;
+      name?: string;
+      color?: string;
+    }) => labelsApi.update(id, input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: labelKeys.byBoard(boardId) });
+      void qc.invalidateQueries({ queryKey: columnKeys.all });
+      void qc.invalidateQueries({ queryKey: cardKeys.all });
+    },
+  });
+}
+
+export function useDeleteLabel(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => labelsApi.remove(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: labelKeys.byBoard(boardId) });
+      void qc.invalidateQueries({ queryKey: columnKeys.all });
+      void qc.invalidateQueries({ queryKey: cardKeys.all });
     },
   });
 }

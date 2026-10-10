@@ -38,7 +38,7 @@ export function BillingPageView() {
         />
       )}
 
-      {isLoading && <Skeleton className="h-40 w-full rounded-xl" />}
+      {isLoading && <Skeleton className="h-40 w-full rounded-md" />}
 
       {isError && (
         <EmptyState
@@ -50,7 +50,7 @@ export function BillingPageView() {
 
       {data && (
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-card p-5">
+          <div className="rounded-md border border-border bg-card p-5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("currentPlan")}</h2>
               <Badge>{data.plan}</Badge>

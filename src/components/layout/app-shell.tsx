@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
@@ -9,6 +10,8 @@ import { ActiveWorkspaceProvider } from "./active-workspace-context";
 import { CommandPaletteProvider } from "./command-palette";
 import { useMeEvents } from "@/hooks/use-board-events";
 import { useAuth } from "@/hooks/use-auth";
+import { useBoard } from "@/hooks/use-boards";
+import { useAmbientScene } from "@/hooks/use-ambient-scene";
 import { cn } from "@/lib/utils";
 
 function MeEventsBridge() {
@@ -23,7 +26,11 @@ function MeEventsBridge() {
 export function AppShell({ children }: { children: ReactNode }) {
   const locale = useLocale();
   const t = useTranslations("common");
+  const pathname = usePathname();
   const isRtl = locale === "fa";
+  const boardId = pathname.match(/^\/boards\/([^/]+)/)?.[1];
+  const { data: board } = useBoard(boardId);
+  const scene = useAmbientScene(board);
 
   return (
     <DashboardDateProvider>
@@ -36,8 +43,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {t("skipToContent")}
           </a>
-          <div className="flex h-dvh w-full overflow-hidden bg-dashboard-frame">
-            <div className="flex h-full w-full overflow-hidden bg-background">
+          <div
+            className={cn(
+              "waymark-app font-waymark flex h-dvh w-full overflow-hidden bg-cover bg-center",
+              locale === "fa" && "font-waymark",
+            )}
+            style={scene.style}
+          >
+            <div className="flex h-full w-full overflow-hidden">
               <Sidebar />
               <div
                 className={cn(

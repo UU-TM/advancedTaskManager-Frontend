@@ -36,7 +36,6 @@ export { timeEntriesApi } from "./time-entries";
 export { remindersApi } from "./reminders";
 export type { CreateReminderInput } from "./reminders";
 export { notificationsApi } from "./notifications";
-export { dashboardPrefsApi } from "./dashboard-prefs";
 export { activityStatsApi, searchApi } from "./activity-stats";
 export { settingsApi } from "./settings";
 export type {
@@ -46,6 +45,14 @@ export type {
 } from "./settings";
 export { myWorkApi } from "./my-work";
 export { dependenciesApi } from "./dependencies";
+export { customFieldsApi } from "./custom-fields";
+export type {
+  CreateCustomFieldInput,
+  UpdateCustomFieldInput,
+} from "./custom-fields";
+export { powerUpsApi } from "./power-ups";
+export { stickersApi } from "./stickers";
+export type { PlaceStickerInput, UpdateCardStickerInput } from "./stickers";
 export { automationsApi } from "./automations";
 export type { CreateAutomationInput } from "./automations";
 export { boardViewPrefsApi } from "./board-view-prefs";
@@ -93,7 +100,20 @@ export type {
 } from "./goals";
 export { portfolioApi } from "./portfolio";
 export type { Portfolio } from "./portfolio";
-export { marketplaceApi } from "./marketplace";
-export type { MarketplacePack, PackKind } from "./marketplace";
 export { billingApi } from "./billing";
 export type { WorkspaceSubscription, BillingPlan } from "./billing";
+export { milestonesApi } from "./milestones";
+export type {
+  CreateMilestoneInput,
+  UpdateMilestoneInput,
+} from "./milestones";
+export { smartListsApi } from "./smart-lists";
+export type {
+  CreateSmartListInput,
+  UpdateSmartListInput,
+} from "./smart-lists";
+export { webhooksApi } from "./webhooks";
+export type { CreateWebhookInput, UpdateWebhookInput } from "./webhooks";
+export { exportApi } from "./export";
+export { whiteboardsApi } from "./whiteboards";
+export type { WhiteboardScene, WhiteboardSceneResponse } from "./whiteboards";

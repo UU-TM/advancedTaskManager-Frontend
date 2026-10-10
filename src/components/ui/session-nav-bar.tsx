@@ -5,30 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, type Transition } from "framer-motion";
-import {
-  BarChart3,
-  Bell,
-  Building2,
-  ClipboardList,
-  CreditCard,
-  Home,
-  Inbox,
-  ListChecks,
-  LayoutDashboard,
-  LayoutTemplate,
-  LogOut,
-  Mail,
-  Pin,
-  Package,
-  Plug,
-  Plus,
-  Rocket,
-  Settings,
-  Target,
-  Trello,
-  UserCircle,
-  Users,
-} from "lucide-react";
+import { LogOut, Mail, Pin, Plus, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -42,10 +19,20 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { CreateBoardDialog } from "@/components/features/boards/create-board-dialog";
+import {
+  APP_NAV_FOOTER,
+  APP_NAV_GENERAL,
+  APP_NAV_INSIGHTS,
+  APP_NAV_MORE,
+  APP_NAV_PLANNING,
+  isNavActive,
+  type AppNavItemDef,
+} from "@/components/layout/app-nav";
 import { useActiveWorkspace } from "@/components/layout/active-workspace-context";
 import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 import { useAuth } from "@/hooks/use-auth";
 import { useHome } from "@/hooks/use-home";
+import { useMyInvitations } from "@/hooks/use-workspaces";
 import { HOME_ROUTE } from "@/lib/auth/config";
 import { cn } from "@/lib/utils";
 
@@ -63,9 +50,23 @@ const transitionProps: Transition = {
 type NavItem = {
   label: string;
   href: string;
-  icon: typeof Home;
+  icon: AppNavItemDef["icon"];
   badge?: string | number;
 };
+
+function mapNav(
+  defs: AppNavItemDef[],
+  t: (key: AppNavItemDef["labelKey"]) => string,
+  assignedCount: number,
+): NavItem[] {
+  return defs.map((def) => ({
+    label: t(def.labelKey),
+    href: def.href,
+    icon: def.icon,
+    badge:
+      def.boardsBadge && assignedCount > 0 ? assignedCount : undefined,
+  }));
+}
 
 /** Row: icon + label packed to the outer edge (right in FA, left in EN). */
 function NavLink({
@@ -79,8 +80,7 @@ function NavLink({
   pathname: string;
   isRtl: boolean;
 }) {
-  const active =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const active = isNavActive(pathname, item.href);
   const Icon = item.icon;
 
   const label = (
@@ -89,7 +89,7 @@ function NavLink({
       {item.badge != null && (
         <Badge
           variant="outline"
-          className="h-fit shrink-0 rounded border-none bg-primary/10 px-1.5 text-primary"
+          className="h-fit shrink-0 rounded border-none bg-muted px-1.5 text-muted-foreground"
         >
           {item.badge}
         </Badge>
@@ -103,11 +103,11 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       aria-label={item.label}
       className={cn(
-        "flex h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 transition focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+        "flex h-8 w-full items-center gap-2 rounded-full px-2.5 py-1.5 transition focus-visible:ring-2 focus-visible:ring-sidebar-ring",
         isRtl ? "justify-end" : "justify-start",
         active
-          ? "bg-primary/12 font-medium text-primary"
-          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          ? "bg-sidebar-accent font-medium text-foreground"
+          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       )}
     >
       {isRtl ? (
@@ -161,6 +161,8 @@ export function SessionNavBar() {
 
   const assignedCount =
     home?.assignedCards.filter((c) => !c.archivedAt).length ?? 0;
+  const { data: invitations = [] } = useMyInvitations(!!user);
+  const inviteCount = invitations.length;
 
   const initials = (user?.displayName || user?.username || "?")
     .split(/\s+/)
@@ -169,49 +171,25 @@ export function SessionNavBar() {
     .slice(0, 2)
     .toUpperCase();
 
-  const general: NavItem[] = useMemo(
-    () => [
-      { label: t("home"), href: "/home", icon: Home },
-      { label: t("myWork"), href: "/my-work", icon: ListChecks },
-      { label: t("inbox"), href: "/inbox", icon: Bell },
-      {
-        label: t("myBoards"),
-        href: "/boards",
-        icon: Trello,
-        badge: assignedCount > 0 ? assignedCount : undefined,
-      },
-    ],
+  const general = useMemo(
+    () => mapNav(APP_NAV_GENERAL, t, assignedCount),
     [t, assignedCount],
   );
-
-  const insights: NavItem[] = useMemo(
-    () => [
-      { label: t("analytics"), href: "/analytics", icon: BarChart3 },
-      { label: t("workload"), href: "/workload", icon: Users },
-      { label: t("portfolio"), href: "/portfolio", icon: LayoutDashboard },
-    ],
-    [t],
+  const insights = useMemo(
+    () => mapNav(APP_NAV_INSIGHTS, t, assignedCount),
+    [t, assignedCount],
   );
-
-  const planning: NavItem[] = useMemo(
-    () => [
-      { label: t("sprints"), href: "/sprints", icon: Rocket },
-      { label: t("goals"), href: "/goals", icon: Target },
-      { label: t("forms"), href: "/forms", icon: ClipboardList },
-    ],
-    [t],
+  const planning = useMemo(
+    () => mapNav(APP_NAV_PLANNING, t, assignedCount),
+    [t, assignedCount],
   );
-
-  const more: NavItem[] = useMemo(
-    () => [
-      { label: t("templates"), href: "/templates", icon: LayoutTemplate },
-      { label: t("marketplace"), href: "/marketplace", icon: Package },
-      { label: t("workspace"), href: "/workspace", icon: Building2 },
-      { label: t("invitations"), href: "/invitations", icon: Mail },
-      { label: t("integrations"), href: "/integrations", icon: Plug },
-      { label: t("billing"), href: "/billing", icon: CreditCard },
-    ],
-    [t],
+  const more = useMemo(
+    () => mapNav(APP_NAV_MORE, t, assignedCount),
+    [t, assignedCount],
+  );
+  const footer = useMemo(
+    () => mapNav(APP_NAV_FOOTER, t, assignedCount),
+    [t, assignedCount],
   );
 
   const showExpanded = !isCollapsed || interactionLocked;
@@ -240,7 +218,7 @@ export function SessionNavBar() {
     >
       <div
         dir="ltr"
-        className="relative z-40 flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
+        className="relative z-40 flex h-full w-full flex-col bg-sidebar text-sidebar-foreground backdrop-blur-xl"
       >
         {/* Brand */}
         <div
@@ -417,34 +395,15 @@ export function SessionNavBar() {
 
         {/* Footer */}
         <div className="flex flex-col gap-1 border-t border-sidebar-border p-2">
-          <Link
-            href="/settings"
-            className={cn(
-              "flex h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              isRtl ? "justify-end" : "justify-start",
-              pathname.startsWith("/settings") && "bg-primary/12 text-primary",
-            )}
-          >
-            {isRtl ? (
-              <>
-                {showExpanded && (
-                  <span className="truncate text-sm font-medium">
-                    {t("settings")}
-                  </span>
-                )}
-                <Settings className="size-4 shrink-0" />
-              </>
-            ) : (
-              <>
-                <Settings className="size-4 shrink-0" />
-                {showExpanded && (
-                  <span className="truncate text-sm font-medium">
-                    {t("settings")}
-                  </span>
-                )}
-              </>
-            )}
-          </Link>
+          {footer.map((item) => (
+            <NavLink
+              key={item.href}
+              item={item}
+              isCollapsed={!showExpanded}
+              pathname={pathname}
+              isRtl={isRtl}
+            />
+          ))}
 
           <DropdownMenu
             modal={false}
@@ -453,7 +412,7 @@ export function SessionNavBar() {
             <DropdownMenuTrigger className="w-full outline-none">
               <div
                 className={cn(
-                  "flex h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  "relative flex h-8 w-full items-center gap-2 rounded-full px-2.5 py-1.5 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   isRtl ? "justify-end" : "justify-start",
                 )}
               >
@@ -484,6 +443,9 @@ export function SessionNavBar() {
                     )}
                   </>
                 )}
+                {inviteCount > 0 && (
+                  <span className="absolute end-1 top-1 size-1.5 rounded-full bg-primary" />
+                )}
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent sideOffset={5} align={isRtl ? "end" : "start"}>
@@ -513,15 +475,32 @@ export function SessionNavBar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link
-                  href="/profile"
+                  href="/settings"
                   className={cn(
                     "flex items-center gap-2",
                     isRtl && "flex-row-reverse",
                   )}
                 >
-                  <UserCircle className="size-4" /> {t("profile")}
+                  <Settings className="size-4" /> {t("settings")}
                 </Link>
               </DropdownMenuItem>
+              {inviteCount > 0 && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/invitations"
+                    className={cn(
+                      "flex items-center gap-2",
+                      isRtl && "flex-row-reverse",
+                    )}
+                  >
+                    <Mail className="size-4" />
+                    <span className="flex-1">{t("invitations")}</span>
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+                      {inviteCount}
+                    </Badge>
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className={cn(
                   "flex items-center gap-2",

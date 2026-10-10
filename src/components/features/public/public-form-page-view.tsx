@@ -40,7 +40,7 @@ export function PublicFormPageView() {
     return (
       <div className="mx-auto max-w-lg space-y-4 px-4 py-12">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-md" />
       </div>
     );
   }
@@ -76,7 +76,7 @@ export function PublicFormPageView() {
         <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
       <form
-        className="space-y-4 rounded-xl border border-border bg-card p-5"
+        className="space-y-4 rounded-md border border-border bg-card p-5"
         onSubmit={(e) => {
           e.preventDefault();
           const payload: Record<string, unknown> = { ...values, _hp: hp };

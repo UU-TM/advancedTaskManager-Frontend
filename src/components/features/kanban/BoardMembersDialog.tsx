@@ -112,7 +112,7 @@ export function BoardMembersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-xl">
+      <DialogContent className="sm:max-w-md rounded-md">
         <DialogHeader>
           <DialogTitle className="tracking-tight">{t("membersTitle")}</DialogTitle>
           <DialogDescription>{t("membersDescription")}</DialogDescription>

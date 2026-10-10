@@ -35,7 +35,7 @@ export function AnalyticsPageView() {
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <div className="flex gap-1 rounded-xl border border-border p-1">
+          <div className="flex gap-1 rounded-md border border-border p-1">
             {RANGES.map((r) => (
               <Button
                 key={r}
@@ -61,10 +61,10 @@ export function AnalyticsPageView() {
 
       {workspaceId && isLoading && (
         <div className="grid gap-4 sm:grid-cols-3">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-64 rounded-xl sm:col-span-3" />
+          <Skeleton className="h-24 rounded-md" />
+          <Skeleton className="h-24 rounded-md" />
+          <Skeleton className="h-24 rounded-md" />
+          <Skeleton className="h-64 rounded-md sm:col-span-3" />
         </div>
       )}
 
@@ -92,9 +92,9 @@ export function AnalyticsPageView() {
             ].map((m) => (
               <div
                 key={m.label}
-                className="rounded-xl border border-border bg-card px-4 py-5"
+                className="rounded-md border border-border bg-card px-4 py-5"
               >
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {m.label}
                 </p>
                 <p className="mt-2 text-2xl font-semibold tracking-tight">
@@ -104,7 +104,7 @@ export function AnalyticsPageView() {
             ))}
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="rounded-md border border-border bg-card p-4">
             <h2 className="mb-4 text-sm font-semibold">{t("throughput")}</h2>
             <div className={cn("h-64 w-full")}>
               <ResponsiveContainer width="100%" height="100%">

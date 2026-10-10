@@ -11,10 +11,9 @@ export function WidgetShell({
   return (
     <section
       className={cn(
-        "flex h-full min-h-0 flex-col rounded-2xl border border-border/80 bg-card p-5",
+        "flex min-h-0 flex-col rounded-[18px] border border-border/80 bg-card p-6 text-card-foreground shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_24px_60px_-28px_rgba(0,0,0,0.28)]",
         className,
       )}
-      style={{ boxShadow: "var(--dashboard-widget-shadow)" }}
     >
       {children}
     </section>

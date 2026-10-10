@@ -51,8 +51,8 @@ export function InlineColumnComposer({
     return (
       <Button
         type="button"
-        variant="outline"
-        className="h-auto w-72 shrink-0 cursor-pointer justify-start border-dashed py-3 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+        variant="ghost"
+        className="h-auto w-[272px] shrink-0 cursor-pointer justify-start rounded-2xl bg-[var(--kanban-list-bg)] px-3 py-3 font-medium text-foreground shadow-[var(--kanban-list-shadow)] hover:bg-[color-mix(in_oklab,var(--kanban-list-bg)_88%,var(--foreground))]"
         onClick={() => setOpen(true)}
       >
         <Plus className="size-4" />
@@ -64,7 +64,7 @@ export function InlineColumnComposer({
   return (
     <div
       ref={rootRef}
-      className="w-72 shrink-0 rounded-xl border border-border bg-muted/50 p-2"
+      className="w-[272px] shrink-0 rounded-2xl bg-[var(--kanban-list-bg)] p-2 text-foreground shadow-[var(--kanban-list-shadow)]"
     >
       <Input
         ref={inputRef}

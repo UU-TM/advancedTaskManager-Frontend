@@ -27,7 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function GoalsPageView() {
+export function GoalsPageView({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations("goals");
   const { workspaceId } = useActiveWorkspace();
   const { data: goals = [], isLoading, isError } = useGoals(workspaceId);
@@ -40,68 +40,80 @@ export function GoalsPageView() {
   const [description, setDescription] = useState("");
   const [krDrafts, setKrDrafts] = useState<Record<string, string>>({});
 
+  const createDialog = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="cursor-pointer" disabled={!workspaceId}>
+          <Plus className="me-1.5 size-4" />
+          {t("create")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("createTitle")}</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!workspaceId || !name.trim()) return;
+            createGoal.mutate(
+              {
+                name: name.trim(),
+                description: description.trim() || null,
+              },
+              {
+                onSuccess: () => {
+                  toast.success(t("created"));
+                  setOpen(false);
+                  setName("");
+                  setDescription("");
+                },
+                onError: () => toast.error(t("createFailed")),
+              },
+            );
+          }}
+        >
+          <div className="space-y-2">
+            <Label>{t("name")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>{t("description")}</Label>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={createGoal.isPending}
+          >
+            {t("create")}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-6 md:px-6">
-      <PageHeader
-        title={t("title")}
-        description={t("subtitle")}
-        actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="cursor-pointer" disabled={!workspaceId}>
-                <Plus className="me-1.5 size-4" />
-                {t("create")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("createTitle")}</DialogTitle>
-              </DialogHeader>
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!workspaceId || !name.trim()) return;
-                  createGoal.mutate(
-                    {
-                      name: name.trim(),
-                      description: description.trim() || null,
-                    },
-                    {
-                      onSuccess: () => {
-                        toast.success(t("created"));
-                        setOpen(false);
-                        setName("");
-                        setDescription("");
-                      },
-                      onError: () => toast.error(t("createFailed")),
-                    },
-                  );
-                }}
-              >
-                <div className="space-y-2">
-                  <Label>{t("name")}</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("description")}</Label>
-                  <Input
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full cursor-pointer"
-                  disabled={createGoal.isPending}
-                >
-                  {t("create")}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+    <div
+      className={
+        embedded
+          ? "space-y-6"
+          : "mx-auto max-w-4xl space-y-8 px-4 py-6 md:px-6"
+      }
+    >
+      {embedded ? (
+        <div className="flex justify-end">{createDialog}</div>
+      ) : (
+        <PageHeader
+          title={t("title")}
+          description={t("subtitle")}
+          actions={createDialog}
+        />
+      )}
 
       {!workspaceId && (
         <EmptyState
@@ -111,7 +123,7 @@ export function GoalsPageView() {
         />
       )}
 
-      {isLoading && <Skeleton className="h-40 w-full rounded-xl" />}
+      {isLoading && <Skeleton className="h-40 w-full rounded-md" />}
 
       {isError && (
         <EmptyState
@@ -133,7 +145,7 @@ export function GoalsPageView() {
         {goals.map((goal) => (
           <div
             key={goal.id}
-            className="space-y-3 rounded-xl border border-border bg-card p-4"
+            className="space-y-3 rounded-md border border-border bg-card p-4"
           >
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-semibold">{goal.name}</h2>

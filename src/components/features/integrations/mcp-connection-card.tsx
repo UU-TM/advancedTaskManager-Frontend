@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Copy, Terminal } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
 import {
   Card,
@@ -116,14 +116,9 @@ export function McpConnectionCard() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Terminal className="size-5" />
-          </div>
-          <div>
-            <CardTitle>{t("mcp.title")}</CardTitle>
-            <CardDescription>{t("mcp.description")}</CardDescription>
-          </div>
+        <div>
+          <CardTitle>{t("mcp.title")}</CardTitle>
+          <CardDescription>{t("mcp.description")}</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

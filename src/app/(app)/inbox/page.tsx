@@ -1,5 +1,5 @@
-import { InboxPageView } from "@/components/features/inbox/inbox-page-view";
+import { redirect } from "next/navigation";
 
 export default function InboxPage() {
-  return <InboxPageView />;
+  redirect("/home");
 }

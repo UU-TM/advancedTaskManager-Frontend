@@ -157,8 +157,8 @@ export function SettingsPageView() {
     return (
       <div className="mx-auto max-w-2xl space-y-4 px-4 py-8 md:px-8">
         <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-md" />
+        <Skeleton className="h-40 w-full rounded-md" />
       </div>
     );
   }
@@ -179,7 +179,7 @@ export function SettingsPageView() {
       <PageHeader title={t("title")} description={t("subtitle")} />
 
       {/* Account */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle>{t("account.title")}</CardTitle>
           <CardDescription>{t("account.description")}</CardDescription>
@@ -252,7 +252,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Security */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-muted-foreground" />
@@ -318,7 +318,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Appearance */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle>{t("appearance.title")}</CardTitle>
           <CardDescription>{t("appearance.description")}</CardDescription>
@@ -347,7 +347,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Notifications */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle>{t("notifications.title")}</CardTitle>
           <CardDescription>{t("notifications.description")}</CardDescription>
@@ -407,7 +407,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Keyboard shortcuts */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Keyboard className="size-4 text-muted-foreground" />
@@ -433,7 +433,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Connected shortcuts */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle>{t("connected.title")}</CardTitle>
           <CardDescription>{t("connected.description")}</CardDescription>
@@ -479,7 +479,7 @@ export function SettingsPageView() {
       </Card>
 
       {/* Session */}
-      <Card className="rounded-2xl">
+      <Card className="rounded-md">
         <CardHeader>
           <CardTitle>{t("session.title")}</CardTitle>
           <CardDescription>{t("session.description")}</CardDescription>

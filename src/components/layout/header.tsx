@@ -1,31 +1,29 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Bell,
-  Calendar as CalendarIcon,
   ChevronDown,
   LogOut,
+  Mail,
   Menu,
   Search,
-  User as UserIcon,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useDashboardDate } from "./dashboard-date-context";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
 } from "@/hooks/use-notifications";
+import { useMyInvitations } from "@/hooks/use-workspaces";
 import { LOGIN_ROUTE } from "@/lib/auth/config";
-import { formatAppDate } from "@/lib/date";
-import type { Locale } from "@/i18n/config";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,7 +95,7 @@ function HeaderNotifications() {
         >
           <Bell className="size-4" />
           {unread > 0 && (
-            <span className="absolute -end-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-dashboard-accent px-1 text-[10px] font-semibold leading-4 text-primary-foreground">
+            <span className="absolute -end-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-dashboard-accent px-1 text-[10px] font-semibold leading-4 text-background">
               {unread > 9 ? "9+" : unread}
             </span>
           )}
@@ -147,46 +145,6 @@ function HeaderNotifications() {
   );
 }
 
-function HeaderDatePicker() {
-  const t = useTranslations("nav");
-  const locale = useLocale() as Locale;
-  const { selectedDate, setSelectedDate } = useDashboardDate();
-  const label = useMemo(
-    () =>
-      formatAppDate(selectedDate.toISOString(), "EEEE, MMMM d", locale) ?? "",
-    [selectedDate, locale],
-  );
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={t("pickDate")}
-        >
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          <span className="hidden sm:inline">{label}</span>
-          <ChevronDown className="size-3.5 text-muted-foreground" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => {
-            if (date) {
-              const next = new Date(date);
-              next.setHours(0, 0, 0, 0);
-              setSelectedDate(next);
-            }
-          }}
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 /**
  * Sticky top bar with mobile nav sheet + user menu.
  */
@@ -194,12 +152,12 @@ export function Header({ leading }: { leading?: ReactNode }) {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const locale = useLocale();
-  const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const { data: invitations = [] } = useMyInvitations(isAuthenticated);
+  const inviteCount = invitations.length;
   const [mobileOpen, setMobileOpen] = useState(false);
   const sheetSide = locale === "fa" ? "right" : "left";
-  const isHome = pathname === "/home" || pathname.startsWith("/home/");
 
   async function handleLogout() {
     await logout();
@@ -207,7 +165,11 @@ export function Header({ leading }: { leading?: ReactNode }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/60 bg-background/90 px-3 backdrop-blur-sm md:px-5">
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/60 bg-background/70 px-3 text-foreground backdrop-blur-md md:px-5",
+      )}
+    >
       <div className="flex items-center gap-2 md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
@@ -224,10 +186,7 @@ export function Header({ leading }: { leading?: ReactNode }) {
         </Sheet>
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        {isHome && <HeaderDatePicker />}
-        {leading}
-      </div>
+      <div className="flex min-w-0 flex-1 items-center gap-2">{leading}</div>
 
       <div className="flex items-center gap-0.5">
         <HeaderSearch />
@@ -238,7 +197,7 @@ export function Header({ leading }: { leading?: ReactNode }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="ms-1 flex cursor-pointer items-center gap-2 rounded-full outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
+                className="relative ms-1 flex cursor-pointer items-center gap-2 rounded-full outline-none transition-opacity duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={t("openUserMenu")}
               >
                 <Avatar className="size-8 border border-border">
@@ -254,6 +213,9 @@ export function Header({ leading }: { leading?: ReactNode }) {
                   {user.displayName ?? user.username}
                 </span>
                 <ChevronDown className="hidden size-3.5 text-muted-foreground lg:inline" />
+                {inviteCount > 0 && (
+                  <span className="absolute -end-0.5 -top-0.5 size-2 rounded-full bg-primary lg:hidden" />
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
@@ -269,11 +231,22 @@ export function Header({ leading }: { leading?: ReactNode }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/profile" className="cursor-pointer">
-                  <UserIcon className="me-2 size-4" />
-                  {t("profile")}
+                <Link href="/settings" className="cursor-pointer">
+                  <Settings className="me-2 size-4" />
+                  {t("settings")}
                 </Link>
               </DropdownMenuItem>
+              {inviteCount > 0 && (
+                <DropdownMenuItem asChild>
+                  <Link href="/invitations" className="cursor-pointer">
+                    <Mail className="me-2 size-4" />
+                    <span className="flex-1">{t("invitations")}</span>
+                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+                      {inviteCount}
+                    </Badge>
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <div className="flex items-center justify-between px-2 py-1.5">
                 <span className="text-sm">{tCommon("theme")}</span>

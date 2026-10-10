@@ -18,7 +18,7 @@ function BoardColumns({ board }: { board: PublicBoardSnapshot }) {
       {board.columns.map((col) => (
         <div
           key={col.id}
-          className="w-72 shrink-0 rounded-xl border border-border bg-muted/30 p-3"
+          className="w-72 shrink-0 rounded-md border border-border bg-muted/30 p-3"
         >
           <h2 className="mb-3 px-1 text-sm font-semibold">{col.title}</h2>
           <ul className="space-y-2">
@@ -82,11 +82,11 @@ export function PublicBoardPageView({ embed = false }: { embed?: boolean }) {
 
   return (
     <div className={embed ? "min-h-screen bg-background p-3" : "mx-auto max-w-6xl px-4 py-8"}>
-      {isLoading && <Skeleton className="h-64 w-full rounded-xl" />}
+      {isLoading && <Skeleton className="h-64 w-full rounded-md" />}
 
       {needsPassword && (
         <form
-          className="mx-auto max-w-sm space-y-3 rounded-xl border border-border bg-card p-5"
+          className="mx-auto max-w-sm space-y-3 rounded-md border border-border bg-card p-5"
           onSubmit={(e) => {
             e.preventDefault();
             setSubmittedPassword(password);
@@ -118,7 +118,7 @@ export function PublicBoardPageView({ embed = false }: { embed?: boolean }) {
         <div className="space-y-4">
           {!embed && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {t("readOnly")}
               </p>
               <h1 className="text-2xl font-semibold tracking-tight">{data.name}</h1>

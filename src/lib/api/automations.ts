@@ -31,6 +31,16 @@ export const automationsApi = {
     });
   },
 
+  run(
+    id: string,
+    input: { cardId?: string } = {},
+  ): Promise<{ actionsRun: number }> {
+    return apiFetch<{ actionsRun: number }>(`/automations/${id}/run`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  },
+
   remove(id: string): Promise<BoardAutomation> {
     return apiFetch<BoardAutomation>(`/automations/${id}`, {
       method: "DELETE",

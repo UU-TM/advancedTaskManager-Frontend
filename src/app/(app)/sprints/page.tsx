@@ -1,5 +1,5 @@
-import { SprintsPageView } from "@/components/features/sprints/sprints-page-view";
+import { redirect } from "next/navigation";
 
 export default function SprintsPage() {
-  return <SprintsPageView />;
+  redirect("/planning?tab=sprints");
 }

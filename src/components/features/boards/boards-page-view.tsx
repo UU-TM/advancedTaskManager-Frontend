@@ -1,6 +1,5 @@
 "use client";
 
-import { Trello } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { useBoards } from "@/hooks/use-boards";
@@ -77,18 +76,11 @@ export function BoardsPageView() {
       {loading && <PageSkeletonCards />}
 
       {!loading && !errorMessage && boards && boards.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border bg-card/50 px-6 py-10">
-          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-start">
-            <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Trello className="size-5" />
-            </div>
-            <div>
-              <p className="text-base font-semibold">{t("emptyTitle")}</p>
-              <p className="text-sm text-muted-foreground">
-                {t("emptyDescription")}
-              </p>
-            </div>
-          </div>
+        <div className="max-w-md py-6">
+          <p className="text-base font-semibold">{t("emptyTitle")}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+            {t("emptyDescription")}
+          </p>
         </div>
       )}
 
@@ -104,7 +96,6 @@ export function BoardsPageView() {
                 else star.mutate(id);
               }}
               member={user}
-              index={index}
             />
           ))}
         </div>

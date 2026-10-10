@@ -10,6 +10,7 @@ const apiOrigin =
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  transpilePackages: ["@excalidraw/excalidraw"],
   typescript: {
     ignoreBuildErrors: true,
   },

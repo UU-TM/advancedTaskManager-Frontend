@@ -7,7 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-app-sans, var(--font-plus-jakarta));
+  --font-sans: var(--font-app-sans, var(--font-source-sans));
+  --font-display: var(--font-app-display, var(--font-source-sans));
   --font-mono: var(--font-jetbrains-mono);
   --color-dashboard-frame: var(--dashboard-frame);
   --color-dashboard-accent: var(--dashboard-accent);
@@ -80,27 +81,27 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Ink neutrals + teal brand
-   Cool gray surfaces; teal for focus / flow (not SaaS blue/purple).
+   Paper and ink
+   Ink neutrals; deep teal is reserved for primary actions.
    ────────────────────────────────────────────────────────────────── */
 :root {
   --radius: 0.75rem;
 
-  /* Surfaces — ink slate, slightly warm so it doesn’t feel sterile */
-  --background: #f3f5f4;
-  --foreground: #14201c;
+  /* Waymark surfaces */
+  --background: #f7fafc;
+  --foreground: #0a0a0a;
   --card: #ffffff;
-  --card-foreground: #14201c;
+  --card-foreground: #0a0a0a;
   --popover: #ffffff;
-  --popover-foreground: #14201c;
+  --popover-foreground: #0a0a0a;
 
-  /* Brand — deep teal; amber only for warnings / rare emphasis */
-  --primary: #0f766e;
+  /* Brand — Waymark blue */
+  --primary: #357dff;
   --primary-foreground: #ffffff;
-  --secondary: #e4ebe8;
-  --secondary-foreground: #14201c;
-  --accent: #c2410c;
-  --accent-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --accent: #eef4ff;
+  --accent-foreground: #357dff;
 
   /* Status */
   --success: #15803d;
@@ -111,35 +112,33 @@
   --destructive-foreground: #ffffff;
 
   /* Muted / borders */
-  --muted: #e8eeeb;
-  --muted-foreground: #5b6b64;
-  --border: #d5ded9;
-  --input: #d5ded9;
-  --ring: #0f766e;
+  --muted: #f4f4f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #357dff;
 
   /* Charts */
-  --chart-1: #0f766e;
-  --chart-2: #0e7490;
-  --chart-3: #c2410c;
+  --chart-1: #357dff;
+  --chart-2: #99f6e4;
+  --chart-3: #c4b5fd;
   --chart-4: #15803d;
-  --chart-5: #64748b;
+  --chart-5: #737373;
 
   /* Sidebar */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #14201c;
-  --sidebar-primary: #0f766e;
+  --sidebar: rgb(255 255 255 / 0.85);
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #357dff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e8eeeb;
-  --sidebar-accent-foreground: #14201c;
-  --sidebar-border: #d5ded9;
-  --sidebar-ring: #0f766e;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: rgb(229 229 229 / 0.7);
+  --sidebar-ring: #357dff;
 
   /* Dashboard chrome */
-  --dashboard-frame: #e6ece9;
-  --dashboard-accent: #0f766e;
-  --dashboard-widget-shadow:
-    0 1px 2px rgba(20, 32, 28, 0.04),
-    0 8px 24px -6px rgba(15, 118, 110, 0.14);
+  --dashboard-frame: #f7fafc;
+  --dashboard-accent: #357dff;
+  --dashboard-widget-shadow: 0 1px 2px rgba(20, 32, 28, 0.06);
 
   --text-display: 2.25rem;
   --text-title: 1.5rem;
@@ -147,15 +146,22 @@
   --text-body: 0.9375rem;
   --text-caption: 0.75rem;
 
-  --surface-1: #f3f5f4;
-  --surface-2: #e7eeeb;
+  --surface-1: #f7fafc;
+  --surface-2: #f4f4f5;
   --surface-3: #ffffff;
-  --border-soft: #e3ebe7;
+  --border-soft: #ececec;
 
   --shadow-xs: 0 1px 2px rgba(20, 32, 28, 0.05);
-  --shadow-sm: 0 1px 2px rgba(20, 32, 28, 0.06), 0 6px 16px -6px rgba(15, 118, 110, 0.16);
+  --shadow-sm: 0 1px 2px rgba(20, 32, 28, 0.06), 0 4px 10px -6px rgba(20, 32, 28, 0.1);
   --shadow-md: 0 10px 28px -10px rgba(20, 32, 28, 0.16);
   --shadow-lg: 0 18px 44px -16px rgba(20, 32, 28, 0.22);
+
+  /* Kanban board — soft Waymark neutrals */
+  --kanban-list-bg: #f4f4f5;
+  --kanban-list-shadow: 0 1px 1px rgba(20, 32, 28, 0.08), 0 0 1px rgba(20, 32, 28, 0.12);
+  --kanban-card-shadow: 0 1px 1px rgba(20, 32, 28, 0.14), 0 0 1px rgba(20, 32, 28, 0.18);
+  --kanban-card-shadow-hover: 0 2px 4px rgba(20, 32, 28, 0.16), 0 0 1px rgba(20, 32, 28, 0.2);
+  --kanban-add-list-bg: #e7e8ec;
 
   --duration-fast: 120ms;
   --duration-base: 180ms;
@@ -163,24 +169,24 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Deep ink night + luminous teal
+   Night ink — same deep teal as light mode
    ────────────────────────────────────────────────────────────────── */
 .dark {
   --radius: 0.75rem;
 
-  --background: #0c1412;
-  --foreground: #e6eeea;
-  --card: #121c19;
-  --card-foreground: #e6eeea;
-  --popover: #121c19;
-  --popover-foreground: #e6eeea;
+  --background: #0c1016;
+  --foreground: #f4f4f5;
+  --card: #161b22;
+  --card-foreground: #f4f4f5;
+  --popover: #161b22;
+  --popover-foreground: #f4f4f5;
 
-  --primary: #5eead4;
-  --primary-foreground: #0c1412;
-  --secondary: #1a2824;
-  --secondary-foreground: #e6eeea;
-  --accent: #fb923c;
-  --accent-foreground: #0c1412;
+  --primary: #357dff;
+  --primary-foreground: #ffffff;
+  --secondary: #1c2430;
+  --secondary-foreground: #f4f4f5;
+  --accent: #1c2a44;
+  --accent-foreground: #9ec0ff;
 
   --success: #4ade80;
   --success-foreground: #0c1412;
@@ -189,42 +195,103 @@
   --destructive: #f87171;
   --destructive-foreground: #0c1412;
 
-  --muted: #1a2824;
-  --muted-foreground: #8fa39a;
-  --border: #2a3b35;
-  --input: #2a3b35;
-  --ring: #5eead4;
+  --muted: #1c2430;
+  --muted-foreground: #a3a3a3;
+  --border: #2a3340;
+  --input: #2a3340;
+  --ring: #357dff;
 
-  --chart-1: #5eead4;
-  --chart-2: #67e8f9;
-  --chart-3: #fb923c;
+  --chart-1: #357dff;
+  --chart-2: #5eead4;
+  --chart-3: #c4b5fd;
   --chart-4: #4ade80;
-  --chart-5: #94a3b8;
+  --chart-5: #a3a3a3;
 
-  --sidebar: #121c19;
-  --sidebar-foreground: #e6eeea;
-  --sidebar-primary: #5eead4;
-  --sidebar-primary-foreground: #0c1412;
-  --sidebar-accent: #1a2824;
-  --sidebar-accent-foreground: #e6eeea;
-  --sidebar-border: #2a3b35;
-  --sidebar-ring: #5eead4;
+  --sidebar: #12161c;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #357dff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1c2430;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #2a3340;
+  --sidebar-ring: #357dff;
 
-  --dashboard-frame: #0c1412;
-  --dashboard-accent: #5eead4;
-  --dashboard-widget-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 10px 28px -8px rgba(94, 234, 212, 0.14);
+  --dashboard-frame: #0c1016;
+  --dashboard-accent: #357dff;
+  --dashboard-widget-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 
-  --surface-1: #0c1412;
-  --surface-2: #16211e;
-  --surface-3: #121c19;
-  --border-soft: #24332e;
+  --surface-1: #0c1016;
+  --surface-2: #161b22;
+  --surface-3: #1c2430;
+  --border-soft: #2a3340;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px -8px rgba(94, 234, 212, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 12px 32px -12px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 20px 48px -16px rgba(0, 0, 0, 0.65);
+
+  --kanban-list-bg: #1c2430;
+  --kanban-list-shadow: 0 1px 1px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.45);
+  --kanban-card-shadow: 0 1px 1px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
+  --kanban-card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.55);
+  --kanban-add-list-bg: #1c2430;
+}
+
+/* Landing hero board follows the active theme. */
+.landing-board {
+  --background: #d3e4e6;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #357dff;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #737373;
+  --accent: #eef4ff;
+  --accent-foreground: #357dff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #357dff;
+  --kanban-list-bg: #f4f4f5;
+  --kanban-list-shadow: 0 1px 1px rgba(20, 32, 28, 0.08), 0 0 1px rgba(20, 32, 28, 0.12);
+  --kanban-card-shadow: 0 1px 1px rgba(20, 32, 28, 0.14), 0 0 1px rgba(20, 32, 28, 0.18);
+  --kanban-card-shadow-hover: 0 2px 4px rgba(20, 32, 28, 0.16), 0 0 1px rgba(20, 32, 28, 0.2);
+  --kanban-add-list-bg: #e7e8ec;
+  color: var(--foreground);
+}
+
+.dark .landing-board {
+  --background: #0c1016;
+  --foreground: #f4f4f5;
+  --card: #161b22;
+  --card-foreground: #f4f4f5;
+  --popover: #161b22;
+  --popover-foreground: #f4f4f5;
+  --primary: #357dff;
+  --primary-foreground: #ffffff;
+  --secondary: #1c2430;
+  --secondary-foreground: #f4f4f5;
+  --muted: #1c2430;
+  --muted-foreground: #a3a3a3;
+  --accent: #1c2a44;
+  --accent-foreground: #9ec0ff;
+  --destructive: #f87171;
+  --destructive-foreground: #0c1412;
+  --border: #2a3340;
+  --input: #2a3340;
+  --ring: #357dff;
+  --kanban-list-bg: #1c2430;
+  --kanban-list-shadow: 0 1px 1px rgba(0, 0, 0, 0.35), 0 0 1px rgba(0, 0, 0, 0.45);
+  --kanban-card-shadow: 0 1px 1px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 0, 0, 0.5);
+  --kanban-card-shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.55);
+  --kanban-add-list-bg: #1c2430;
+  color: var(--foreground);
 }
 
 @layer base {
@@ -235,10 +302,183 @@
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
   /* Persian: Vazirmatn via --font-app-sans; more leading, no tracking */
   html[lang="fa"] body {
     line-height: 1.7;
     letter-spacing: 0;
+  }
+}
+
+/* Deep teal fills fail contrast as text on night ink */
+@layer utilities {
+  .dark .text-primary {
+    color: #6ea2ff;
+  }
+
+  /* Latin display face for the landing page, home, and board. Persian stays Vazirmatn. */
+  .font-jakarta {
+    font-family: var(--font-plus-jakarta), var(--font-source-sans), sans-serif;
+  }
+
+  .font-waymark {
+    font-family: var(--font-inter), var(--font-source-sans), sans-serif;
+  }
+
+  .font-display {
+    font-family: var(--font-open-runde), var(--font-inter), var(--font-source-sans), sans-serif;
+    letter-spacing: -0.03em;
+  }
+
+  html[lang="fa"] .font-waymark,
+  html[lang="fa"] .font-display {
+    font-family: var(--font-vazirmatn), sans-serif;
+    letter-spacing: 0;
+  }
+
+  .waymark-wash {
+    background:
+      radial-gradient(90% 55% at 0% 0%, rgba(196, 181, 253, 0.55), transparent 60%),
+      radial-gradient(80% 50% at 100% 8%, rgba(153, 246, 228, 0.62), transparent 55%),
+      #f7fafc;
+  }
+
+  .waymark-app {
+    background:
+      radial-gradient(90% 55% at 0% 0%, rgba(196, 181, 253, 0.45), transparent 62%),
+      radial-gradient(80% 50% at 100% 0%, rgba(153, 246, 228, 0.5), transparent 58%),
+      var(--background);
+    color: var(--foreground);
+  }
+
+  .dark .waymark-app,
+  .dark .waymark-wash {
+    background:
+      radial-gradient(90% 55% at 0% 0%, rgba(99, 102, 241, 0.22), transparent 62%),
+      radial-gradient(80% 50% at 100% 0%, rgba(45, 212, 191, 0.12), transparent 58%),
+      var(--background);
+    color: var(--foreground);
+    color-scheme: dark;
+  }
+
+  .wm-rise {
+    animation: wm-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .wm-roll {
+    animation: wm-roll 8.4s cubic-bezier(0.77, 0, 0.175, 1) infinite;
+  }
+
+  .wm-row {
+    animation: wm-row 6.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .wm-sweep {
+    animation: wm-sweep 4.8s ease-in-out infinite;
+  }
+
+  .wm-ping {
+    animation: wm-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .teal-stage {
+    background: linear-gradient(
+      165deg,
+      color-mix(in oklab, var(--primary) 40%, white),
+      color-mix(in oklab, var(--primary) 84%, #042f2c)
+    );
+  }
+
+  .teal-wash {
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--primary) 16%, var(--background)) 0%,
+      var(--background) 28rem
+    );
+  }
+}
+
+@keyframes wm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wm-roll {
+  0%,
+  100% {
+    opacity: 1;
+    z-index: 4;
+    transform: translateY(0) scale(1);
+  }
+  18% {
+    opacity: 0.72;
+    z-index: 3;
+    transform: translateY(78%) scale(0.94);
+  }
+  36% {
+    opacity: 0.4;
+    z-index: 2;
+    transform: translateY(148%) scale(0.88);
+  }
+  50% {
+    opacity: 0;
+    z-index: 1;
+    transform: translateY(200%) scale(0.8);
+  }
+  58% {
+    opacity: 0;
+    transform: translateY(-24%) scale(0.92);
+  }
+  76% {
+    opacity: 0.65;
+    z-index: 3;
+    transform: translateY(-6%) scale(0.98);
+  }
+}
+
+@keyframes wm-row {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  45% {
+    opacity: 0.45;
+  }
+  70% {
+    opacity: 0.72;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes wm-sweep {
+  0%,
+  12% {
+    clip-path: inset(0 100% 0 0);
+  }
+  62%,
+  96% {
+    clip-path: inset(0);
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes wm-ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
   }
 }
 
@@ -250,22 +490,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* react-grid-layout edit chrome */
-.react-grid-item.react-grid-placeholder {
-  background: color-mix(in oklab, var(--dashboard-accent) 25%, transparent);
-  border-radius: 1rem;
-  opacity: 1;
-}
-.react-grid-item > .react-resizable-handle::after {
-  border-color: var(--dashboard-accent) !important;
-}
-/* Never transition transform — it fights drag/resize positioning */
-.layout.editing .react-grid-item {
-  transition: box-shadow 200ms ease;
-}
-.layout.editing .react-grid-item > .react-resizable-handle {
-  z-index: 20;
 }
 

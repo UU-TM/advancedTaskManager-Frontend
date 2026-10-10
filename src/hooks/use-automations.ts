@@ -5,6 +5,8 @@ import {
   automationsApi,
   type CreateAutomationInput,
 } from "@/lib/api";
+import { cardKeys } from "./use-card";
+import { columnKeys } from "./use-columns";
 
 export const automationKeys = {
   all: ["automations"] as const,
@@ -41,6 +43,18 @@ export function useUpdateAutomation(boardId: string) {
       automationsApi.update(id, input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: automationKeys.board(boardId) });
+    },
+  });
+}
+
+export function useRunAutomation(boardId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, cardId }: { id: string; cardId?: string }) =>
+      automationsApi.run(id, { cardId }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: columnKeys.byBoard(boardId) });
+      void qc.invalidateQueries({ queryKey: cardKeys.all });
     },
   });
 }

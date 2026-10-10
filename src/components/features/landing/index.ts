@@ -1,6 +1,6 @@
 export { LandingNav } from "./landing-nav";
 export { LandingHero } from "./landing-hero";
-export { LandingSolutions } from "./landing-solutions";
+export { LandingWorkflow } from "./landing-workflow";
 export { LandingFeatures } from "./landing-features";
 export { LandingIntegrations } from "./landing-integrations";
 export { LandingTestimonials } from "./landing-testimonials";

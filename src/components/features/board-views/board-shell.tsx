@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import {
   ArrowLeft,
   CalendarDays,
   Columns3,
   GanttChart,
+  LayoutDashboard,
   ListChecks,
+  Map as MapIcon,
   Table2,
   Users,
 } from "lucide-react";
@@ -18,13 +21,16 @@ import { AppBreadcrumbs } from "@/components/layout/app-breadcrumbs";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BoardKanban } from "@/components/features/kanban/BoardKanban";
 import { BoardMembersDialog } from "@/components/features/kanban/BoardMembersDialog";
-import { BoardManageMenu } from "@/components/features/kanban/BoardManageMenu";
+import { BoardMenuSheet } from "@/components/features/kanban/BoardMenuSheet";
 import { BoardGithubSheet } from "@/components/features/kanban/BoardGithubSheet";
 import { CardDetailModal } from "@/components/features/kanban/CardDetailModal";
 import { BoardTableView } from "./board-table-view";
 import { BoardCalendarView } from "./board-calendar-view";
 import { BoardTimelineView } from "./board-timeline-view";
+import { BoardDashboardView } from "./board-dashboard-view";
+import { BoardMapView } from "./board-map-view";
 import { AutomationsSheet } from "./automations-sheet";
+import { BoardButtonsBar } from "./board-buttons-bar";
 import { BoardShareDialog } from "./board-share-dialog";
 import { BoardPresenceStrip } from "./board-presence-strip";
 import {
@@ -33,6 +39,8 @@ import {
   type BoardFilters,
 } from "./board-filters";
 import { useBoard } from "@/hooks/use-boards";
+import { useBoardPowerUps } from "@/hooks/use-power-ups";
+import { isPowerUpEnabled } from "@/lib/power-up-keys";
 import { useColumns } from "@/hooks/use-columns";
 import { useBoardLabels, useBoardMembers } from "@/hooks/use-kanban-extras";
 import {
@@ -41,8 +49,10 @@ import {
 } from "@/hooks/use-board-view-prefs";
 import { useBoardDependencies } from "@/hooks/use-dependencies";
 import { useBoardEvents } from "@/hooks/use-board-events";
+import { useAuth } from "@/hooks/use-auth";
 import type { BoardViewMode } from "@/types/domain";
 import { BoardBriefDialog } from "./board-brief";
+import { boardAmbientVars } from "@/lib/board-ambient";
 import { cn } from "@/lib/utils";
 
 const VIEW_ORDER: BoardViewMode[] = [
@@ -50,13 +60,31 @@ const VIEW_ORDER: BoardViewMode[] = [
   "TABLE",
   "CALENDAR",
   "TIMELINE",
+  "DASHBOARD",
+  "MAP",
 ];
+
+const VIEW_META: Record<
+  BoardViewMode,
+  {
+    icon: typeof Columns3;
+    label: "kanban" | "table" | "calendar" | "timeline" | "dashboard" | "map";
+  }
+> = {
+  KANBAN: { icon: Columns3, label: "kanban" },
+  TABLE: { icon: Table2, label: "table" },
+  CALENDAR: { icon: CalendarDays, label: "calendar" },
+  TIMELINE: { icon: GanttChart, label: "timeline" },
+  DASHBOARD: { icon: LayoutDashboard, label: "dashboard" },
+  MAP: { icon: MapIcon, label: "map" },
+};
 
 type BoardShellProps = {
   boardId: string;
 };
 
 export function BoardShell({ boardId }: BoardShellProps) {
+  const locale = useLocale();
   const t = useTranslations("kanban");
   const tViews = useTranslations("boardViews");
   const router = useRouter();
@@ -68,19 +96,42 @@ export function BoardShell({ boardId }: BoardShellProps) {
   const { data: prefs } = useBoardViewPrefs(boardId);
   const updatePrefs = useUpdateBoardViewPrefs(boardId);
   const { data: dependencies = [] } = useBoardDependencies(boardId);
+  const { data: powerUps = [], isSuccess: powerUpsReady } = useBoardPowerUps(boardId);
+  const calendarOn = isPowerUpEnabled(powerUps, "calendar");
+  const timelineOn = isPowerUpEnabled(powerUps, "timeline");
+  const dashboardOn = isPowerUpEnabled(powerUps, "dashboard");
+  const mapOn = isPowerUpEnabled(powerUps, "map");
+  const githubOn = isPowerUpEnabled(powerUps, "github");
+  const depsOn = isPowerUpEnabled(powerUps, "dependencies");
+  const availableViews = useMemo(
+    () =>
+      VIEW_ORDER.filter((mode) => {
+        if (mode === "CALENDAR") return calendarOn;
+        if (mode === "TIMELINE") return timelineOn;
+        if (mode === "DASHBOARD") return dashboardOn;
+        if (mode === "MAP") return mapOn;
+        return true;
+      }),
+    [calendarOn, timelineOn, dashboardOn, mapOn],
+  );
   useBoardEvents(boardId);
   const tBrief = useTranslations("brief");
+  const { user: me } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const ambientVars = boardAmbientVars(board, resolvedTheme === "dark");
 
   const [viewMode, setViewMode] = useState<BoardViewMode>("KANBAN");
   const [filters, setFilters] = useState<BoardFilters>({});
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
   const [briefOpen, setBriefOpen] = useState(false);
+  const [butlerOpen, setButlerOpen] = useState(false);
 
   useEffect(() => {
     const fromUrl = searchParams.get("view") as BoardViewMode | null;
     if (fromUrl && VIEW_ORDER.includes(fromUrl)) setViewMode(fromUrl);
-    else if (prefs?.viewMode) setViewMode(prefs.viewMode);
+    else if (prefs?.viewMode && VIEW_ORDER.includes(prefs.viewMode))
+      setViewMode(prefs.viewMode);
     if (prefs?.filters) setFilters(prefs.filters as BoardFilters);
   }, [prefs, searchParams]);
 
@@ -105,8 +156,8 @@ export function BoardShell({ boardId }: BoardShellProps) {
   );
 
   const filteredColumns = useMemo(
-    () => filterColumns(columns, filters),
-    [columns, filters],
+    () => filterColumns(columns, filters, me?.id),
+    [columns, filters, me?.id],
   );
 
   useEffect(() => {
@@ -116,19 +167,30 @@ export function BoardShell({ boardId }: BoardShellProps) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if ((e.target as HTMLElement).isContentEditable) return;
       if (document.querySelector("[role='dialog']")) return;
-      if (e.key >= "1" && e.key <= "4") {
-        const next = VIEW_ORDER[Number(e.key) - 1];
+      if (e.key >= "1" && e.key <= String(availableViews.length)) {
+        const next = availableViews[Number(e.key) - 1];
         setViewMode(next);
         updatePrefs.mutate({ viewMode: next });
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [updatePrefs]);
+  }, [availableViews, updatePrefs]);
+
+  useEffect(() => {
+    if (!powerUpsReady) return;
+    if (!availableViews.includes(viewMode)) setViewMode("KANBAN");
+  }, [availableViews, powerUpsReady, viewMode]);
 
   return (
-    <div className="flex h-[calc(100dvh-3rem)] flex-col">
-      <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border/80 bg-background/90 px-4 py-2.5 backdrop-blur-sm md:px-6">
+    <div
+      className={cn(
+        "flex h-[calc(100dvh-3rem)] flex-col",
+        locale !== "fa" && "font-waymark",
+      )}
+      style={ambientVars}
+    >
+      <header className="flex shrink-0 flex-wrap items-center gap-2 bg-background/85 px-3 py-2 backdrop-blur-md md:px-4">
         <Button asChild variant="ghost" size="sm" className="cursor-pointer">
           <Link href="/boards">
             <ArrowLeft className="me-2 size-4 rtl:rotate-180" />
@@ -156,24 +218,26 @@ export function BoardShell({ boardId }: BoardShellProps) {
           className="ms-2"
         >
           <TabsList className="h-8">
-            <TabsTrigger value="KANBAN" className="cursor-pointer gap-1.5 px-2.5 text-xs">
-              <Columns3 className="size-3.5" />
-              <span className="sr-only sm:not-sr-only sm:inline">{tViews("kanban")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="TABLE" className="cursor-pointer gap-1.5 px-2.5 text-xs">
-              <Table2 className="size-3.5" />
-              <span className="sr-only sm:not-sr-only sm:inline">{tViews("table")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="CALENDAR" className="cursor-pointer gap-1.5 px-2.5 text-xs">
-              <CalendarDays className="size-3.5" />
-              <span className="sr-only sm:not-sr-only sm:inline">{tViews("calendar")}</span>
-            </TabsTrigger>
-            <TabsTrigger value="TIMELINE" className="cursor-pointer gap-1.5 px-2.5 text-xs">
-              <GanttChart className="size-3.5" />
-              <span className="sr-only sm:not-sr-only sm:inline">{tViews("timeline")}</span>
-            </TabsTrigger>
+            {availableViews.map((mode) => {
+              const view = VIEW_META[mode];
+              const Icon = view.icon;
+              return (
+                <TabsTrigger
+                  key={mode}
+                  value={mode}
+                  className="cursor-pointer gap-1.5 px-2.5 text-xs"
+                >
+                  <Icon className="size-3.5" />
+                  <span className="sr-only sm:not-sr-only sm:inline">
+                    {tViews(view.label)}
+                  </span>
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </Tabs>
+
+        <BoardButtonsBar boardId={boardId} />
 
         <div className="ms-auto flex flex-wrap items-center gap-2">
           <BoardPresenceStrip boardId={boardId} />
@@ -200,9 +264,14 @@ export function BoardShell({ boardId }: BoardShellProps) {
             <ListChecks className="size-4" />
           </Button>
           <BoardShareDialog boardId={boardId} />
-          <AutomationsSheet boardId={boardId} columns={columns} />
-          <BoardGithubSheet boardId={boardId} />
-          {board && <BoardManageMenu board={board} />}
+          <AutomationsSheet
+            boardId={boardId}
+            columns={columns}
+            open={butlerOpen}
+            onOpenChange={setButlerOpen}
+          />
+          {githubOn && <BoardGithubSheet boardId={boardId} />}
+          {board && <BoardMenuSheet board={board} onOpenButler={() => setButlerOpen(true)} />}
           <Button
             variant="outline"
             size="icon-sm"
@@ -216,15 +285,23 @@ export function BoardShell({ boardId }: BoardShellProps) {
         </div>
       </header>
 
-      <div className={cn("min-h-0 flex-1", viewMode === "KANBAN" && "overflow-hidden")}>
+      <div className={cn("min-h-0 flex-1", viewMode === "KANBAN" && "overflow-hidden px-3 pb-3 md:px-4")}>
         {viewMode === "KANBAN" && (
-          <BoardKanban
-            boardId={boardId}
-            filteredColumns={filteredColumns}
-            isLoadingColumns={isLoading}
-            openCardId={openCardId}
-            onOpenCardChange={setOpenCard}
-          />
+          <div
+            className={cn(
+              "flex h-full min-h-0 flex-col overflow-hidden rounded-[28px]",
+              !ambientVars && "teal-stage",
+            )}
+          >
+            <BoardKanban
+              boardId={boardId}
+              board={board}
+              filteredColumns={filteredColumns}
+              isLoadingColumns={isLoading}
+              openCardId={openCardId}
+              onOpenCardChange={setOpenCard}
+            />
+          </div>
         )}
         {viewMode === "TABLE" && (
           <BoardTableView
@@ -242,7 +319,14 @@ export function BoardShell({ boardId }: BoardShellProps) {
         {viewMode === "TIMELINE" && (
           <BoardTimelineView
             columns={filteredColumns}
-            dependencies={dependencies}
+            dependencies={depsOn ? dependencies : []}
+            onOpenCard={(id) => setOpenCard(id)}
+          />
+        )}
+        {viewMode === "DASHBOARD" && <BoardDashboardView boardId={boardId} />}
+        {viewMode === "MAP" && (
+          <BoardMapView
+            columns={filteredColumns}
             onOpenCard={(id) => setOpenCard(id)}
           />
         )}

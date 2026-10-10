@@ -36,13 +36,13 @@ export function TodoListWidget() {
   }
 
   return (
-    <WidgetShell className="min-h-[22rem]">
+    <WidgetShell>
       <div className="mb-3">
         <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight">
           <Pencil className="size-5 text-foreground" aria-hidden />
           {t("title")}
         </h2>
-        <hr className="mt-3 border-0 border-t-2 border-foreground" />
+        <hr className="mt-3 border-0 border-t border-border" />
       </div>
 
       <form onSubmit={(e) => void handleCreate(e)} className="mb-3">
@@ -50,11 +50,11 @@ export function TodoListWidget() {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={t("createPlaceholder")}
-          className="border-0 bg-transparent px-0 text-muted-foreground shadow-none focus-visible:ring-0"
+          className="h-auto rounded-none border-0 bg-transparent px-0 py-2 text-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0 dark:bg-transparent"
         />
       </form>
 
-      <ul className="flex-1 space-y-3 overflow-y-auto">
+      <ul className="space-y-3">
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-6 w-full" />
@@ -72,7 +72,7 @@ export function TodoListWidget() {
               className={cn(
                 "mt-0.5 size-5 rounded-[4px] border-2",
                 todo.completed &&
-                  "border-dashboard-accent data-[state=checked]:border-dashboard-accent data-[state=checked]:bg-dashboard-accent data-[state=checked]:text-white",
+                  "border-dashboard-accent data-[state=checked]:border-dashboard-accent data-[state=checked]:bg-dashboard-accent data-[state=checked]:text-background",
               )}
             />
             {editingId === todo.id ? (

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="d" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.6" fill="#f3f5f4" fill-opacity=".35"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="#115e59"/>
+  <rect width="800" height="600" fill="url(#d)"/>
+</svg>

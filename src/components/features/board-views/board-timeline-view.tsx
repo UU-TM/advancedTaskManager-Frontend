@@ -80,7 +80,7 @@ export function BoardTimelineView({
 
   return (
     <div className="flex h-full flex-col overflow-hidden p-4 md:p-6" dir="ltr">
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-border">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-md border border-border bg-card">
         <div style={{ width: Math.max(width + 200, 800) }} className="min-w-full">
           <div className="sticky top-0 z-10 flex border-b border-border bg-muted/90 backdrop-blur">
             <div className="sticky start-0 z-20 w-48 shrink-0 border-e border-border bg-muted px-3 py-2 text-xs font-semibold uppercase text-muted-foreground">

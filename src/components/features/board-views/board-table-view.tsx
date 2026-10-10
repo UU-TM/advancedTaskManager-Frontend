@@ -206,7 +206,7 @@ export function BoardTableView({
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border">
+      <div className="min-h-0 flex-1 overflow-auto rounded-md border border-border bg-card">
         <table className="w-full min-w-[900px] text-sm">
           <thead className="sticky top-0 bg-muted/80 backdrop-blur">
             {table.getHeaderGroups().map((hg) => (

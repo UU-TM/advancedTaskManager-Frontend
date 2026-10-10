@@ -4,7 +4,7 @@ export const PRIORITY_COLORS: Record<CardPriority, string> = {
   URGENT: "bg-destructive text-destructive-foreground",
   HIGH: "bg-accent text-accent-foreground",
   MEDIUM: "bg-amber-400 text-slate-900 dark:bg-amber-500 dark:text-slate-950",
-  LOW: "bg-primary/15 text-primary",
+  LOW: "bg-muted text-muted-foreground",
 };
 
 export const LABEL_PRESET_COLORS = [

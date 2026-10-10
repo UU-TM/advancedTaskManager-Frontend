@@ -83,7 +83,7 @@ export function WorkspaceSwitcher({
           <Button
             variant="outline"
             className={cn(
-              "h-10 w-full gap-2 rounded-xl px-3 font-medium",
+              "h-10 w-full gap-2 rounded-md px-3 font-medium",
               rtl ? "flex-row-reverse" : "flex-row",
               triggerClassName,
             )}

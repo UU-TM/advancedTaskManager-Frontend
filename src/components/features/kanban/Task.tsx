@@ -39,6 +39,8 @@ type TaskProps = {
   onDelete: (card: Card) => void;
   onCopy: (card: Card) => void;
   onMoveTo: (card: Card, columnId: string) => void;
+  /** Board pref: show label names on label bars. */
+  showLabelText?: boolean;
 };
 
 export function Task({
@@ -49,12 +51,13 @@ export function Task({
   onDelete,
   onCopy,
   onMoveTo,
+  showLabelText,
 }: TaskProps) {
   const pending = card.id.startsWith("temp-");
   if (pending) {
     return (
-      <div className="pointer-events-none rounded-lg border border-border bg-card text-sm opacity-60 shadow-[var(--shadow-xs)]">
-        <TaskCardBody card={card} />
+      <div className="pointer-events-none relative rounded-lg bg-card text-sm text-card-foreground opacity-60 shadow-[var(--kanban-card-shadow)]">
+        <TaskCardBody card={card} showLabelText={showLabelText} />
       </div>
     );
   }
@@ -68,6 +71,7 @@ export function Task({
       onDelete={onDelete}
       onCopy={onCopy}
       onMoveTo={onMoveTo}
+      showLabelText={showLabelText}
     />
   );
 }
@@ -80,6 +84,7 @@ function TaskCard({
   onDelete,
   onCopy,
   onMoveTo,
+  showLabelText,
 }: TaskProps) {
   const t = useTranslations("kanban");
   const cardElRef = useRef<HTMLDivElement | null>(null);
@@ -141,7 +146,7 @@ function TaskCard({
           type="button"
           variant="ghost"
           size="icon-xs"
-          className="absolute end-1 top-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+          className="absolute end-1 top-1 rounded-md bg-card/90 opacity-100 shadow-xs sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
           aria-label={t("openCard")}
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
@@ -200,12 +205,16 @@ function TaskCard({
             }
           }}
           className={cn(
-            "group relative cursor-pointer rounded-lg border border-border bg-card text-sm shadow-[var(--shadow-xs)] transition-[box-shadow,opacity,border-color] duration-150 hover:border-primary/30 hover:shadow-[var(--shadow-sm)] active:cursor-grabbing touch-manipulation",
+            "group relative cursor-pointer rounded-lg bg-card text-sm text-card-foreground shadow-[var(--kanban-card-shadow)] transition-[opacity,box-shadow] duration-150 hover:shadow-[var(--kanban-card-shadow-hover)] active:cursor-grabbing touch-manipulation",
             isDragging && "cursor-grabbing opacity-0",
             isRemoving && "pointer-events-none",
           )}
         >
-          <TaskCardBody card={card} trailing={menu} />
+          <TaskCardBody
+            card={card}
+            trailing={menu}
+            showLabelText={showLabelText}
+          />
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">

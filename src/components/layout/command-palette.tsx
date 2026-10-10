@@ -12,29 +12,18 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import {
-  BarChart3,
-  ClipboardList,
-  CreditCard,
-  Home,
-  Inbox,
-  LayoutDashboard,
-  LayoutTemplate,
   LogOut,
   Moon,
-  Package,
-  Plug,
-  Rocket,
   Settings,
-  Sparkles,
+  SquareCheck,
   Sun,
-  Target,
   Trello,
-  Users,
-  Bell,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSearch } from "@/hooks/use-activity-stats";
 import { useNlSearch } from "@/hooks/use-ai";
+import { usePowerUpEnabledAnywhere } from "@/hooks/use-power-ups";
+import { APP_NAV_COMMAND } from "@/components/layout/app-nav";
 import { LOGIN_ROUTE } from "@/lib/auth/config";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -47,26 +36,6 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-
-const NAV_ITEMS = [
-  { href: "/home", icon: Home, labelKey: "home" as const },
-  { href: "/my-work", icon: Inbox, labelKey: "myWork" as const },
-  { href: "/inbox", icon: Bell, labelKey: "inbox" as const },
-  { href: "/boards", icon: Trello, labelKey: "myBoards" as const },
-  { href: "/analytics", icon: BarChart3, labelKey: "analytics" as const },
-  { href: "/workload", icon: Users, labelKey: "workload" as const },
-  { href: "/sprints", icon: Rocket, labelKey: "sprints" as const },
-  { href: "/goals", icon: Target, labelKey: "goals" as const },
-  { href: "/portfolio", icon: LayoutDashboard, labelKey: "portfolio" as const },
-  { href: "/forms", icon: ClipboardList, labelKey: "forms" as const },
-  { href: "/templates", icon: LayoutTemplate, labelKey: "templates" as const },
-  { href: "/marketplace", icon: Package, labelKey: "marketplace" as const },
-  { href: "/billing", icon: CreditCard, labelKey: "billing" as const },
-  { href: "/integrations", icon: Plug, labelKey: "integrations" as const },
-  { href: "/workspace", icon: LayoutDashboard, labelKey: "workspace" as const },
-  { href: "/invitations", icon: Bell, labelKey: "invitations" as const },
-  { href: "/settings", icon: Settings, labelKey: "settings" as const },
-];
 
 const CommandPaletteContext = createContext<{
   open: boolean;
@@ -93,7 +62,8 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const isNl = q.trim().startsWith("?");
+  const nlOn = usePowerUpEnabledAnywhere("nl-search");
+  const isNl = nlOn && q.trim().startsWith("?");
   const nlQuery = isNl ? q.trim().slice(1).trim() : "";
   const { data, isFetching } = useSearch(
     q,
@@ -161,7 +131,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
         description={t("searchPlaceholder")}
       >
         <CommandInput
-          placeholder={t("searchPlaceholderNl")}
+          placeholder={nlOn ? t("searchPlaceholderNl") : t("searchPlaceholder")}
           value={q}
           onValueChange={setQ}
         />
@@ -180,7 +150,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
           </CommandEmpty>
 
           <CommandGroup heading={t("commandNavigation")}>
-              {NAV_ITEMS.map(({ href, icon: Icon, labelKey }) => (
+              {APP_NAV_COMMAND.map(({ href, icon: Icon, labelKey }) => (
                 <CommandItem
                   key={href}
                   value={`${t(labelKey)} ${labelKey}`}
@@ -202,7 +172,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                     go(`/boards/${card.boardId}?card=${card.id}`)
                   }
                 >
-                  <Sparkles className="size-4" />
+                  <SquareCheck className="size-4" />
                   <span className="truncate">{card.title}</span>
                   <span className="text-xs text-muted-foreground">
                     {card.boardName}

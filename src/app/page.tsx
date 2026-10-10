@@ -3,10 +3,8 @@
 import {
   LandingNav,
   LandingHero,
-  LandingSolutions,
+  LandingWorkflow,
   LandingFeatures,
-  LandingIntegrations,
-  LandingTestimonials,
   LandingPricing,
   LandingFaq,
   LandingCta,
@@ -15,14 +13,12 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="font-waymark min-h-dvh overflow-x-hidden bg-background text-foreground">
       <LandingNav />
       <main>
         <LandingHero />
-        <LandingSolutions />
+        <LandingWorkflow />
         <LandingFeatures />
-        <LandingIntegrations />
-        <LandingTestimonials />
         <LandingPricing />
         <LandingFaq />
         <LandingCta />

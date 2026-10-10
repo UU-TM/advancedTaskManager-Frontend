@@ -43,8 +43,14 @@
     "skipToContent": "Skip to main content"
   },
   "home": {
-    "headline": "Think, plan, and track all in one place",
-    "subtitle": "Efficiently manage your tasks and boost productivity with calm, collaborative boards.",
+    "headline": "Plan on boards. Think on an infinite canvas.",
+    "subtitle": "Kanban for delivery, a shared canvas for ideas, and one workspace for both.",
+    "eyebrow": "A calmer place for ambitious, independent teams",
+    "workflow": "Start with a board. See the week take shape.",
+    "trust": {
+      "0": "Boards and a shared canvas",
+      "1": "Your workspace stays yours"
+    },
     "getStarted": "Get started",
     "getDemo": "Get free demo",
     "openBoards": "Open boards",
@@ -56,23 +62,60 @@
       "integrations": "Integrations",
       "pricing": "Pricing",
       "faq": "FAQ",
+      "how": "How it works",
       "openMenu": "Open menu",
       "closeMenu": "Close menu"
     },
     "hero": {
-      "previews": {
-        "workload": "Workload",
-        "schedule": "This week",
-        "todos": "Today",
-        "todo1": "Ship landing page",
-        "todo2": "Review board layout",
-        "todo3": "Invite teammates",
-        "board": "Sprint board"
+      "photoAlt": "Lake, used as a board background.",
+      "board": {
+        "name": "Spring launch",
+        "label": "Example board",
+        "labels": {
+          "0": "Docs",
+          "1": "Localization",
+          "2": "Bug"
+        },
+        "columns": {
+          "0": "To do",
+          "1": "In progress",
+          "2": "Done"
+        },
+        "cards": {
+          "0": "Write release notes",
+          "1": "Translate onboarding into Persian",
+          "2": "Pricing page copy review",
+          "3": "Fix calendar week start",
+          "4": "Invite design team",
+          "5": "Set up sprint 14"
+        },
+        "members": {
+          "0": "You",
+          "1": "Teammate"
+        },
+        "details": {
+          "desc0": "Write what shipped, and what is still open.",
+          "desc1": "Write the getting-started path in Persian.",
+          "desc3": "The week starts on Monday in this workspace.",
+          "checkTitle": "Release",
+          "check0": "Outline the sections",
+          "check1": "Add screenshots",
+          "comment": "I'll take the first draft."
+        }
+      },
+      "whiteboard": {
+        "name": "Launch workshop",
+        "label": "Live whiteboard",
+        "note0": "Journey map",
+        "note1": "Risks",
+        "frame": "Sprint goals",
+        "frameHint": "Collaborate in real time"
       }
     },
     "solutions": {
       "eyebrow": "Solutions",
-      "title": "Solve your team's biggest challenges",
+      "title": "Where the work sits",
+      "photoAlt": "A board background.",
       "showcaseLabel": "Product workspace",
       "items": {
         "0": "Keep everyone aligned with shared boards and transparent progress updates.",
@@ -83,20 +126,66 @@
         "0": "To Do",
         "1": "In Progress",
         "2": "Done"
+      },
+      "tabs": {
+        "0": {
+          "label": "Delivery",
+          "heading": "Ship with clear ownership",
+          "body": "Kanban boards, sprints, and dependencies keep work moving from backlog to done without status meetings.",
+          "cards": {
+            "0": "Sprint board ready",
+            "1": "Blocked cards surfaced",
+            "2": "Owners assigned"
+          }
+        },
+        "1": {
+          "label": "Workshops",
+          "heading": "Facilitate on a shared canvas",
+          "body": "Infinite whiteboards with live cursors so the whole team can sketch journeys, risks, and decisions together.",
+          "cards": {
+            "0": "Sticky clusters",
+            "1": "Live cursors",
+            "2": "Frames for outcomes"
+          }
+        },
+        "2": {
+          "label": "Planning",
+          "heading": "Roadmaps that stay honest",
+          "body": "Goals, milestones, and timelines connect strategy to the cards your team actually touches.",
+          "cards": {
+            "0": "Milestone linked",
+            "1": "Timeline view",
+            "2": "Goal progress"
+          }
+        },
+        "3": {
+          "label": "Ops",
+          "heading": "Automate the busywork",
+          "body": "Rules, webhooks, GitHub, and smart lists cut the glue work so people focus on judgment calls.",
+          "cards": {
+            "0": "Automation fired",
+            "1": "Webhook delivered",
+            "2": "Smart list saved"
+          }
+        }
       }
     },
     "features": {
       "eyebrow": "Features",
       "title": "Keep everything in one place",
-      "subtitle": "Forget complex project management tools.",
+      "subtitle": "Boards for delivery. A whiteboard for the thinking before it.",
       "more": "and a lot more features…",
       "collaboration": {
-        "title": "Seamless collaboration",
+        "title": "Shared boards",
         "description": "Mentions, real notifications, and live board updates keep the team aligned."
+      },
+      "whiteboard": {
+        "title": "Collaborative whiteboards",
+        "description": "Infinite canvas with live cursors and saved snapshots, for workshops and planning."
       },
       "time": {
         "title": "Time management tools",
-        "description": "My Work inbox, calendars, timelines, and card-linked timers across boards."
+        "description": "Home dashboard, calendars, timelines, and card-linked timers across boards."
       },
       "tracking": {
         "title": "Advanced task tracking",
@@ -109,102 +198,87 @@
     },
     "integrations": {
       "eyebrow": "Integrations",
-      "title": "Connect tools you use every day"
+      "title": "GitHub and webhooks",
+      "github": {
+        "title": "GitHub",
+        "body": "Connect a repository so cards and pull requests stay on the same board."
+      },
+      "webhooks": {
+        "title": "Webhooks",
+        "body": "Send board events to an endpoint you run."
+      }
     },
     "testimonials": {
       "eyebrow": "Testimonials",
-      "title": "People just like you are already using Kanban",
+      "title": "From the teams on it",
       "videoLabel": "Watch video review",
       "items": {
         "0": {
-          "quote": "Kanban completely changed how my team collaborates and manages projects. Assigning and tracking tasks is seamless, and real-time updates keep everyone aligned.",
-          "name": "Sara M.",
-          "role": "Marketing Lead",
+          "quote": "The board replaced our status meeting. Ownership sits on the card, not in a thread.",
+          "name": "Sara Mohammadi",
+          "role": "Marketing lead",
           "initials": "SM"
         },
         "1": {
-          "quote": "I use it for study schedules, group projects, and personal goals. Simple, efficient, and keeps me organized.",
-          "name": "Alex R.",
-          "role": "Product Designer",
+          "quote": "Study plans and client work sit in the same account. It stays out of the way.",
+          "name": "Armin Rezaei",
+          "role": "Product designer",
           "initials": "AR"
         },
         "2": {
-          "quote": "Onboarding new teammates is a breeze. Shared boards and clear ownership cut our kickoff time in half.",
-          "name": "Jordan K.",
-          "role": "Engineering Manager",
+          "quote": "New people open the board and move cards. Kickoff got shorter.",
+          "name": "Kamran Jafari",
+          "role": "Engineering manager",
           "initials": "JK"
-        },
-        "3": {
-          "quote": "We've seen a noticeable improvement in meeting deadlines and overall productivity. The tool we didn't know we needed.",
-          "name": "Mina H.",
-          "role": "Operations",
-          "initials": "MH"
-        },
-        "4": {
-          "quote": "Clean boards, drag-and-drop columns, and just enough structure — without the bloat of heavier tools.",
-          "name": "Chris P.",
-          "role": "Founder",
-          "initials": "CP"
         }
       }
     },
     "pricing": {
       "eyebrow": "Pricing",
-      "title": "Simple pricing plans",
-      "subtitle": "Start free, then scale as your team grows. No surprises.",
-      "monthly": "Monthly",
-      "yearly": "Yearly",
-      "saveBadge": "Save $$$",
-      "toggleAria": "Toggle yearly billing",
+      "title": "Pricing",
+      "subtitle": "Start on Free. Move to Team or Business when the workspace needs seats and AI.",
       "popular": "Popular",
       "cta": "Get started",
-      "perMonth": "/mo",
-      "perYear": "/yr",
+      "manageBilling": "Manage billing",
       "plans": {
-        "basic": {
-          "name": "Basic",
-          "description": "Perfect for individuals",
-          "priceMonthly": "5",
-          "priceYearly": "48",
+        "free": {
+          "name": "Free",
+          "description": "Solo boards and a shared canvas",
+          "priceLabel": "No charge",
           "features": {
-            "0": "Unlimited personal boards",
-            "1": "Basic in-app support",
-            "2": "1 user on your account",
-            "3": "1 workspace",
-            "4": "Card attachments"
+            "0": "Boards and whiteboards in one workspace",
+            "1": "Core collaboration on cards",
+            "2": "Limited boards and automations",
+            "3": "A small monthly AI allowance"
           }
         },
-        "pro": {
-          "name": "Pro",
-          "description": "Perfect for small teams",
-          "priceMonthly": "9",
-          "priceYearly": "86",
+        "team": {
+          "name": "Team",
+          "description": "Shared seats for a delivery team",
+          "priceLabel": "Paid seats — billed in the workspace",
           "features": {
-            "0": "Everything in Basic",
-            "1": "Priority support",
-            "2": "Up to 10 users",
-            "3": "Unlimited workspaces",
-            "4": "Board templates"
+            "0": "Everything in Free",
+            "1": "More seats for collaborators",
+            "2": "Higher board and automation limits",
+            "3": "Larger monthly AI allowance"
           }
         },
-        "advanced": {
-          "name": "Advanced",
-          "description": "Perfect for growing orgs",
-          "priceMonthly": "15",
-          "priceYearly": "144",
+        "business": {
+          "name": "Business",
+          "description": "Larger workspaces and entitlements",
+          "priceLabel": "Paid seats — billed in the workspace",
           "features": {
-            "0": "Everything in Pro",
-            "1": "Dedicated support",
-            "2": "Unlimited users",
-            "3": "Admin controls",
-            "4": "Advanced analytics"
+            "0": "Everything in Team",
+            "1": "Highest seat and board limits",
+            "2": "Highest automation limits",
+            "3": "Highest monthly AI allowance"
           }
         }
       }
     },
     "faq": {
       "eyebrow": "FAQ",
-      "title": "Got a question?",
+      "title": "Questions",
       "items": {
         "0": {
           "question": "How long does it take to get started?",
@@ -212,19 +286,19 @@
         },
         "1": {
           "question": "Can I use Kanban for personal projects?",
-          "answer": "Absolutely. Many people start with a personal board for goals and habits, then invite teammates later."
+          "answer": "Yes. Many people start with a personal board, then invite teammates when the work needs a shared workspace."
         },
         "2": {
-          "question": "Do you offer a free trial?",
-          "answer": "Yes — create an account and explore boards, columns, and collaboration before choosing a paid plan."
+          "question": "Is there a free plan?",
+          "answer": "Yes. Free covers boards, whiteboards, and collaboration. Upgrade the workspace to Team or Business when you need more seats or AI calls."
         },
         "3": {
-          "question": "What are your payment terms?",
-          "answer": "Plans are billed monthly or yearly. You can switch billing periods anytime from your account settings."
+          "question": "How does billing work?",
+          "answer": "Workspace admins manage Free, Team, and Business from Billing. Paid plans are charged for the seats and entitlements that workspace needs."
         },
         "4": {
-          "question": "We have a limited budget — can we still use it?",
-          "answer": "The Basic plan is built for individuals and small use cases. Start there and upgrade only when you need team features."
+          "question": "We have a limited budget. Can we still use it?",
+          "answer": "Start on Free. Move to Team or Business only when the workspace needs more seats, boards, or AI."
         },
         "5": {
           "question": "Why not just use a spreadsheet?",
@@ -233,13 +307,13 @@
       }
     },
     "cta": {
-      "title": "Boost productivity & streamline your workflow",
-      "subtitle": "Sign up for a free trial and take control of your productivity.",
-      "button": "Start free trial now",
-      "note": "Secure, no credit card required."
+      "title": "Open a board and invite the team.",
+      "subtitle": "Free to start. Upgrade the workspace when you need seats.",
+      "button": "Get started",
+      "note": "No credit card required on Free."
     },
     "footer": {
-      "tagline": "Stay organized and boost your productivity with boards built for how teams actually work.",
+      "tagline": "Boards for delivery, and a canvas for planning.",
       "product": "Product",
       "company": "Company",
       "rights": "All rights reserved.",
@@ -248,7 +322,7 @@
       "links": {
         "faq": "FAQ",
         "signIn": "Sign in",
-        "getStarted": "Get started"
+        "getStarted": "Get free demo"
       }
     }
   },
@@ -267,8 +341,8 @@
     "forms": "Forms",
     "sprints": "Sprints",
     "goals": "Goals",
+    "milestones": "Milestones",
     "portfolio": "Portfolio",
-    "marketplace": "Marketplace",
     "billing": "Billing",
     "insights": "Insights",
     "planning": "Planning",
@@ -300,7 +374,11 @@
   "analytics": {
     "title": "Analytics",
     "subtitle": "Cycle time, throughput, and WIP for this workspace.",
-    "range": { "7d": "7d", "30d": "30d", "90d": "90d" },
+    "range": {
+      "7d": "7d",
+      "30d": "30d",
+      "90d": "90d"
+    },
     "avgCycleTime": "Avg cycle time",
     "wip": "WIP",
     "completed": "Completed",
@@ -411,6 +489,10 @@
     "errorTitle": "Could not load goals",
     "errorBody": "Refresh and try again."
   },
+  "planning": {
+    "title": "Planning",
+    "subtitle": "Sprints, goals, and milestones for this workspace."
+  },
   "portfolio": {
     "title": "Portfolio",
     "subtitle": "Board health, sprints, and goals at a glance.",
@@ -427,18 +509,6 @@
     "noWorkspace": "Select a workspace",
     "noWorkspaceBody": "Pick a workspace to view portfolio.",
     "errorTitle": "Could not load portfolio",
-    "errorBody": "Refresh and try again."
-  },
-  "marketplace": {
-    "title": "Marketplace",
-    "subtitle": "Install template, automation, and AI packs.",
-    "install": "Install",
-    "installed": "Pack installed",
-    "installFailed": "Could not install pack",
-    "noDescription": "No description",
-    "emptyTitle": "No packs",
-    "emptyBody": "Marketplace packs will appear here.",
-    "errorTitle": "Could not load marketplace",
     "errorBody": "Refresh and try again."
   },
   "billing": {
@@ -590,7 +660,130 @@
     "dueUpdated": "Dates updated",
     "dueFailed": "Could not update dates",
     "timelineEmpty": "Add start or due dates to see the timeline.",
-    "depsCount": "{count} dependencies on this board"
+    "depsCount": "{count} dependencies on this board",
+    "dashboard": "Dashboard",
+    "map": "Map",
+    "dashboardError": "Could not load the dashboard",
+    "dashTotalCards": "Total cards",
+    "dashOverdue": "Overdue",
+    "dashDueSoon": "Due soon",
+    "dashUnassigned": "Unassigned",
+    "dashCompleted": "Completed",
+    "dashNoDue": "{count} without due date",
+    "dashByList": "Cards by list",
+    "dashByLabel": "Cards by label",
+    "dashByMember": "Cards by member",
+    "dashEmpty": "No data yet.",
+    "dashUnnamedLabel": "Unnamed label",
+    "dashOverdueCount": "{count} overdue",
+    "mapEmptyTitle": "No card locations yet",
+    "mapEmptyBody": "Add a location to a card to see it on the map.",
+    "mapAddLocation": "Add location",
+    "mapLocated": "On the map ({count})",
+    "mapNoneYet": "No cards have a location.",
+    "mapOpen": "Open",
+    "mapOpenInMaps": "Open in maps",
+    "mapPickHint": "Click the map to fill coordinates, or type them.",
+    "mapCard": "Card",
+    "mapPickCard": "Pick a card",
+    "mapLat": "Latitude",
+    "mapLng": "Longitude",
+    "mapPlaceName": "Place name",
+    "mapSave": "Save location",
+    "mapSaved": "Location saved",
+    "mapSaveFailed": "Could not save location",
+    "mapInvalid": "Pick a card and valid coordinates.",
+    "filterKeyword": "Search cards…",
+    "filterNoLabels": "No labels",
+    "filterAssignedToMe": "Assigned to me"
+  },
+  "butler": {
+    "title": "Butler",
+    "subtitle": "Automate with rules, buttons and scheduled commands.",
+    "tabRules": "Rules",
+    "tabCardButtons": "Card buttons",
+    "tabBoardButtons": "Board buttons",
+    "tabCalendar": "Calendar",
+    "addRule": "Add rule",
+    "addAction": "Add action",
+    "removeAction": "Remove action",
+    "actions": "Actions",
+    "pickList": "Pick a list",
+    "fromList": "From list",
+    "toList": "To list",
+    "pickLabel": "Pick a label",
+    "noLabels": "No labels on this board",
+    "unnamedLabel": "Unnamed label",
+    "pickMember": "Pick a member",
+    "cardTitlePlaceholder": "New card title",
+    "daysFromNow": "days from now",
+    "messagePlaceholder": "Optional message",
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "action": {
+      "MOVE_TO_COLUMN": "Move card to list",
+      "ADD_LABEL": "Add label",
+      "REMOVE_LABEL": "Remove label",
+      "ASSIGN_USER": "Assign member",
+      "UNASSIGN_USER": "Unassign member",
+      "SET_DUE_DAYS": "Set due date",
+      "CLEAR_DUE": "Clear due date",
+      "SET_PRIORITY": "Set priority",
+      "MARK_COMPLETE": "Mark complete",
+      "ARCHIVE_CARD": "Archive card",
+      "NOTIFY": "Notify assignees",
+      "CREATE_REMINDER": "Create reminder",
+      "CREATE_CARD": "Create card",
+      "MOVE_ALL_CARDS": "Move all cards to list",
+      "ARCHIVE_ALL_IN_COLUMN": "Archive all cards in list"
+    },
+    "actionsIncomplete": "Complete every action before saving.",
+    "emptyTab": "Nothing here yet. Create one above.",
+    "enabled": "Enabled",
+    "run": "Run",
+    "ran": "Ran {count} actions",
+    "runFailed": "Could not run automation",
+    "onCard": "Button on cards",
+    "onBoard": "Button on board",
+    "newCardButton": "New card button",
+    "newBoardButton": "New board button",
+    "cardButtonHint": "Appears inside every card. Runs on that card.",
+    "boardButtonHint": "Appears in the board header. Runs on the whole board.",
+    "buttonName": "Name",
+    "buttonNamePlaceholder": "Send to review",
+    "buttonLabel": "Button label",
+    "buttonLabelPlaceholder": "Review",
+    "addButton": "Add button",
+    "cardButtonsTitle": "Butler buttons",
+    "newCalendar": "New calendar command",
+    "calendarHint": "Runs automatically on a schedule.",
+    "calendarNamePlaceholder": "Archive done cards weekly",
+    "frequency": "Repeat",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "dayOfWeek": "Day of week",
+    "dayOfMonth": "Day of month",
+    "hour": "Hour",
+    "minute": "Minute",
+    "timezone": "Timezone",
+    "addCalendar": "Add command",
+    "weekday": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "scheduleDaily": "Every day at {time}",
+    "scheduleWeekly": "Every {day} at {time}",
+    "scheduleMonthly": "Day {day} of each month at {time}"
   },
   "automations": {
     "title": "Automations",
@@ -761,7 +954,7 @@
       "integrations": "Integrations",
       "integrationsHint": "GitHub, MCP tokens, and more",
       "home": "Home dashboard",
-      "homeHint": "Edit widgets and layout"
+      "homeHint": "Assigned work, due dates, and your list"
     },
     "session": {
       "title": "Session",
@@ -802,7 +995,80 @@
     "columnsAndCards": "{columns} columns · {cards} cards",
     "useTemplateTitle": "Create board from “{name}”",
     "useTemplateDescription": "Name the new board. Columns and labels will be copied from the template.",
-    "createBoard": "Create board"
+    "createBoard": "Create board",
+    "featured": "Featured templates",
+    "featuredBadge": "Featured",
+    "allTemplates": "All templates",
+    "searchPlaceholder": "Search templates…",
+    "noResultsTitle": "No matching templates",
+    "noResultsDescription": "Try a different search or category.",
+    "labelsCount": "{count} labels",
+    "catalog": {
+      "names": {
+        "basicKanban": "Basic Kanban",
+        "sprintBoard": "Sprint Board",
+        "bugTriage": "Bug Triage",
+        "contentCalendar": "Content Calendar",
+        "personalTasks": "Personal Tasks",
+        "hiringPipeline": "Hiring Pipeline",
+        "productLaunch": "Product Launch",
+        "supportInbox": "Support Inbox"
+      },
+      "categories": {
+        "productivity": "Productivity",
+        "engineering": "Engineering",
+        "marketing": "Marketing",
+        "personal": "Personal",
+        "hr": "HR",
+        "product": "Product",
+        "support": "Support"
+      },
+      "descriptions": {
+        "basicKanban": "Classic To Do → In Progress → Done workflow.",
+        "sprintBoard": "Agile sprint columns with backlog and review.",
+        "bugTriage": "Track and prioritize defects from report to fix.",
+        "contentCalendar": "Plan drafts through publish for content teams.",
+        "personalTasks": "Simple personal board for daily priorities.",
+        "hiringPipeline": "Candidate stages from application to offer.",
+        "productLaunch": "Coordinate launch work across teams.",
+        "supportInbox": "Customer support ticket workflow."
+      },
+      "columns": {
+        "toDo": "To Do",
+        "inProgress": "In Progress",
+        "done": "Done",
+        "backlog": "Backlog",
+        "sprintReady": "Sprint Ready",
+        "inReview": "In Review",
+        "reported": "Reported",
+        "triaged": "Triaged",
+        "fixing": "Fixing",
+        "verified": "Verified",
+        "closed": "Closed",
+        "ideas": "Ideas",
+        "writing": "Writing",
+        "editing": "Editing",
+        "scheduled": "Scheduled",
+        "published": "Published",
+        "inbox": "Inbox",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "applied": "Applied",
+        "screening": "Screening",
+        "interview": "Interview",
+        "offer": "Offer",
+        "hired": "Hired",
+        "planning": "Planning",
+        "building": "Building",
+        "qa": "QA",
+        "launchReady": "Launch Ready",
+        "shipped": "Shipped",
+        "new": "New",
+        "investigating": "Investigating",
+        "waitingOnCustomer": "Waiting on customer",
+        "resolved": "Resolved"
+      }
+    }
   },
   "dashboard": {
     "title": "Home",
@@ -811,131 +1077,24 @@
     "greetingAfternoon": "Good afternoon, {name}",
     "greetingEvening": "Good evening, {name}",
     "subtitle": "Your work across boards in one place.",
+    "overview": {
+      "label": "Overview",
+      "assigned": "Assigned",
+      "due": "Due soon",
+      "boards": "Boards"
+    },
     "failed": "Failed to load home",
-    "customize": "Customize",
-    "customizeTitle": "Customize dashboard",
-    "customizeDescription": "Reorder widgets and hide ones you do not need.",
-    "customizeSave": "Save layout",
-    "customizeSaving": "Saving…",
-    "customizeSaved": "Layout saved",
-    "customizeFailed": "Could not save layout",
-    "moveUp": "Move up",
-    "moveDown": "Move down",
-    "showWidget": "Show",
-    "hideWidget": "Hide",
-    "editMode": {
-      "edit": "Edit layout",
-      "done": "Done",
-      "addWidget": "Add widget",
-      "reset": "Reset layout",
-      "addTitle": "Add a widget",
-      "addDescription": "Pick a widget to place on your dashboard.",
-      "allAdded": "Every widget is already on the canvas.",
-      "trash": "Drop here to remove",
-      "editing": "Editing dashboard layout",
-      "mobileHint": "Layout editing is available on larger screens. Widgets are shown in saved order."
-    },
-    "widgets": {
-      "todo": "To do list",
-      "timer": "Time tracker",
-      "activity": "Activity",
-      "assigned": "Tasks I've assigned",
-      "reminder": "Reminder",
-      "dueSoon": "Due soon",
-      "recentActivity": "Recent activity",
-      "starredBoards": "Starred boards",
-      "recentBoards": "Recently viewed",
-      "github": "GitHub",
-      "notifications": "Notifications",
-      "myBoards": "My boards",
-      "checklistPulse": "Checklist pulse",
-      "weekHours": "This week’s hours",
-      "weekStrip": "Week strip"
-    },
     "pack": {
       "dueSoon": {
         "title": "Due soon",
         "empty": "Nothing due in the next week.",
         "emptyTitle": "Nothing due soon",
-        "emptyDescription": "Assigned work with due dates will appear here.",
-        "blurb": "Urgency timeline of upcoming assigned work."
-      },
-      "recentActivity": {
-        "title": "Pulse",
-        "empty": "No activity yet.",
-        "emptyTitle": "Quiet for now",
-        "emptyDescription": "Board events will show up as your team works.",
-        "blurb": "Live rail of board events."
-      },
-      "starredBoards": {
-        "title": "Constellation",
-        "empty": "Star boards to pin them here.",
-        "emptyTitle": "No starred boards",
-        "emptyDescription": "Star boards you use often to pin them here.",
-        "emptyAction": "View boards",
-        "blurb": "Your starred boards as a star field."
-      },
-      "recentBoards": {
-        "title": "Recent stack",
-        "empty": "Open a board to see it here.",
-        "emptyTitle": "No recent boards",
-        "emptyDescription": "Open a board and it will show up in this stack.",
-        "emptyAction": "View boards",
-        "layer": "Layer {n}",
-        "blurb": "Soft stack of recently viewed boards."
-      },
-      "github": {
-        "title": "GitHub",
-        "connected": "Connected",
-        "notConnected": "Not connected",
-        "issues": "Issues",
-        "prs": "PRs",
-        "manage": "Manage integration",
-        "emptyTitle": "GitHub not connected",
-        "emptyDescription": "Connect GitHub to see open issues and pull requests.",
-        "emptyAction": "Connect GitHub",
-        "blurb": "Open issues and pull requests at a glance."
-      },
-      "notifications": {
-        "title": "Inbox glow",
-        "empty": "You’re all caught up.",
-        "emptyTitle": "You’re all caught up",
-        "emptyDescription": "New notifications will land here when something needs you.",
-        "blurb": "Unread notifications with quick jump-in."
-      },
-      "myBoards": {
-        "title": "Board mosaic",
-        "empty": "Create a board to fill the mosaic.",
-        "emptyTitle": "No boards yet",
-        "emptyDescription": "Create a board to start filling this mosaic.",
-        "emptyAction": "View boards",
-        "blurb": "Dense mosaic of all workspace boards."
-      },
-      "checklistPulse": {
-        "title": "Checklist pulse",
-        "empty": "No checklists on assigned cards.",
-        "emptyTitle": "No checklists",
-        "emptyDescription": "Checklist progress on assigned cards will pulse here.",
-        "blurb": "Progress bars for checklist-heavy work."
-      },
-      "weekHours": {
-        "title": "Focus hours",
-        "subtitle": "Logged this week",
-        "emptyTitle": "No hours logged",
-        "emptyDescription": "Start the time tracker to fill this week’s focus hours.",
-        "blurb": "Big hours counter with a 7-day sparkline."
+        "emptyDescription": "Assigned work with due dates will appear here."
       },
       "weekStrip": {
-        "title": "Week dues",
-        "emptyTitle": "No dues this week",
-        "emptyDescription": "Tap a day to focus the dashboard on that date.",
-        "blurb": "Seven-day strip of due counts; tap to focus the date."
-      },
-      "todo": { "blurb": "Personal checklist that syncs to your account." },
-      "timer": { "blurb": "Start, pause, and stop a live time entry." },
-      "activity": { "blurb": "Weekly or daily rings for hours and completions." },
-      "assigned": { "blurb": "Cards assigned to you with progress and avatars." },
-      "reminder": { "blurb": "Carousel of upcoming reminders and meetings." }
+        "title": "This week",
+        "hint": "Dots show how many cards are due that day. Tap a day to set the date."
+      }
     },
     "todo": {
       "title": "To do list",
@@ -945,34 +1104,6 @@
       "emptyDescription": "Add a task above to start your list.",
       "createFailed": "Could not create todo",
       "updateFailed": "Could not update todo"
-    },
-    "timer": {
-      "title": "Time tracker",
-      "pause": "Pause",
-      "resume": "Resume",
-      "stop": "Stop",
-      "start": "Start",
-      "menu": "Timer menu",
-      "reset": "Stop & clear",
-      "history": "View history",
-      "historyTitle": "Time entry history",
-      "historyEmpty": "No time entries yet.",
-      "emptyTitle": "No time entries",
-      "emptyDescription": "Start the timer to log your first session.",
-      "noActive": "00:00:00",
-      "failed": "Timer action failed"
-    },
-    "activity": {
-      "title": "Activity",
-      "weekly": "weekly",
-      "daily": "daily",
-      "workingHours": "Working hours",
-      "tasksCompleted": "Tasks completed",
-      "projectsCompleted": "Projects completed",
-      "pageDot": "Stats page {page}",
-      "failed": "Failed to load activity stats",
-      "emptyTitle": "No activity yet",
-      "emptyDescription": "Hours and completions will show up as you work."
     },
     "assigned": {
       "title": "Tasks I've assigned",
@@ -992,53 +1123,34 @@
       "create": "Create",
       "createFailed": "Could not create task",
       "noBoards": "Create a board first."
-    },
-    "reminder": {
-      "title": "Reminder",
-      "prev": "Previous reminder",
-      "next": "Next reminder",
-      "empty": "No reminders yet.",
-      "emptyTitle": "No reminders",
-      "emptyDescription": "Add a reminder to keep upcoming meetings in view.",
-      "add": "Add reminder",
-      "addTitle": "Add reminder",
-      "addDescription": "Schedule a reminder with an optional meeting link.",
-      "scheduledAt": "Date & time",
-      "linkUrl": "Meeting link",
-      "linkPlaceholder": "https://meet.google.com/…",
-      "creating": "Creating…",
-      "create": "Create",
-      "createFailed": "Could not create reminder",
-      "openLink": "Open meeting link"
-    },
-    "quickCreateBoard": "Create board",
-    "quickTemplates": "Browse templates",
-    "sections": {
-      "assigned": "Assigned to me",
-      "dueSoon": "Up next",
-      "activity": "Recent activity",
-      "starred": "Starred boards",
-      "recent": "Recently viewed"
-    },
-    "inColumn": "in {column}",
-    "emptyAssigned": "Nothing assigned to you right now.",
-    "emptyDueSoon": "No upcoming due dates.",
-    "emptyActivity": "No recent activity yet.",
-    "emptyStarred": "Star boards to pin them here.",
-    "emptyRecent": "Open a board to see it here.",
-    "github": {
-      "title": "GitHub",
-      "manage": "Manage",
-      "connected": "Connected",
-      "notConnected": "Not connected",
-      "openIssues": "Open issues",
-      "openPrs": "Open PRs"
     }
   },
   "integrations": {
     "title": "Integrations",
-    "subtitle": "Connect GitHub, manage API tokens, and set up the MCP server for AI agents.",
+    "subtitle": "Connect GitHub, outbound webhooks, workspace export, API tokens, and MCP.",
     "cancel": "Cancel",
+    "webhooks": {
+      "title": "Outbound webhooks",
+      "subtitle": "Push board and card events to your own endpoints.",
+      "add": "Add webhook",
+      "addTitle": "Create webhook",
+      "url": "Endpoint URL",
+      "secret": "Signing secret",
+      "empty": "No webhooks yet.",
+      "created": "Webhook created",
+      "createFailed": "Could not create webhook",
+      "deleted": "Webhook deleted",
+      "deleteFailed": "Could not delete webhook",
+      "updateFailed": "Could not update webhook"
+    },
+    "export": {
+      "title": "Workspace export",
+      "subtitle": "Download a JSON bundle of boards, cards, and delivery data.",
+      "button": "Export JSON",
+      "exporting": "Exporting…",
+      "success": "Export downloaded",
+      "failed": "Export failed"
+    },
     "github": {
       "title": "GitHub",
       "description": "Track issues and pull requests on your boards.",
@@ -1171,7 +1283,7 @@
   },
   "boards": {
     "title": "Boards",
-    "subtitle": "Pick a board to open its kanban view.",
+    "subtitle": "Pick a board or whiteboard to open.",
     "emptyTitle": "No boards yet",
     "emptyDescription": "Create your first board to start organizing work.",
     "failedWorkspace": "Failed to load workspace",
@@ -1180,13 +1292,83 @@
     "favorite": "Favorite board",
     "unfavorite": "Unfavorite board",
     "createTitle": "Create board",
-    "createDescription": "Give your board a name. You can add columns and cards next.",
+    "createDescription": "Choose a kanban board or a collaborative whiteboard.",
     "create": "Create board",
     "creating": "Creating…",
     "namePlaceholder": "Sprint planning",
-    "createFailed": "Could not create board. Please try again."
+    "createFailed": "Could not create board. Please try again.",
+    "kindLabel": "Type",
+    "kindKanban": "Kanban board",
+    "kindKanbanDesc": "Columns, cards, and views",
+    "kindWhiteboard": "Whiteboard",
+    "kindWhiteboardDesc": "Infinite canvas, live sync"
+  },
+  "whiteboard": {
+    "badge": "Whiteboard",
+    "loading": "Loading whiteboard…",
+    "connecting": "Connecting to live session…",
+    "connectionError": "Could not connect to the collaborative session.",
+    "authRequired": "Sign in to edit this whiteboard.",
+    "libraryStore": {
+      "open": "Library store",
+      "title": "Library store",
+      "description": "Add shape packs and icons to your canvas. Installed packs stay on this device.",
+      "search": "Search libraries…",
+      "loading": "Loading libraries…",
+      "empty": "No libraries match your search.",
+      "install": "Install",
+      "installing": "Installing…",
+      "installed": "Installed",
+      "installedToast": "“{name}” added to your library",
+      "installFailed": "Could not install this library",
+      "loadFailed": "Could not load the library catalog"
+    }
+  },
+  "milestones": {
+    "title": "Milestones",
+    "subtitle": "Mark delivery checkpoints and link cards to them.",
+    "create": "New milestone",
+    "createTitle": "Create milestone",
+    "created": "Milestone created",
+    "createFailed": "Could not create milestone",
+    "name": "Name",
+    "dueDate": "Due date",
+    "noDue": "No due date",
+    "cardCount": "{count} cards",
+    "delete": "Delete milestone",
+    "deleted": "Milestone deleted",
+    "deleteFailed": "Could not delete milestone",
+    "emptyTitle": "No milestones yet",
+    "emptyBody": "Create a milestone to track a release or checkpoint.",
+    "noWorkspace": "Select a workspace",
+    "noWorkspaceBody": "Pick a workspace to manage milestones.",
+    "errorTitle": "Could not load milestones",
+    "errorBody": "Refresh and try again."
+  },
+  "smartLists": {
+    "title": "Smart lists",
+    "create": "Save list",
+    "createTitle": "New smart list",
+    "created": "Smart list saved",
+    "createFailed": "Could not save smart list",
+    "name": "Name",
+    "filterHint": "Starts with a filter for your assigned, active cards. You can refine later.",
+    "empty": "No saved smart lists yet.",
+    "deleted": "Smart list deleted",
+    "deleteFailed": "Could not delete smart list"
   },
   "kanban": {
+    "copyList": "Copy list",
+    "listCopySuffix": " copy",
+    "listCopied": "List copied",
+    "failedCopyList": "Could not copy list",
+    "sortCards": "Sort cards",
+    "sortByTitle": "By title (A–Z)",
+    "sortByDue": "By due date",
+    "listSorted": "Cards sorted",
+    "failedSortList": "Could not sort cards",
+    "archiveAllCards": "Archive all cards",
+    "allCardsArchived": "{count, plural, one {# card archived} other {# cards archived}}",
     "boards": "Boards",
     "members": "Members",
     "loadingBoard": "Loading...",
@@ -1254,9 +1436,189 @@
     "emptyBoard": {
       "title": "No columns yet",
       "description": "Add your first column to start organizing tasks."
+    },
+    "boardMenu": {
+      "title": "Board menu",
+      "description": "Appearance, labels, archive and tools for this board.",
+      "open": "Menu",
+      "back": "Back to menu",
+      "items": {
+        "background": "Change background",
+        "labels": "Labels",
+        "archived": "Archived items",
+        "powerUps": "Power-Ups",
+        "butler": "Automation (Butler)",
+        "settings": "Board settings",
+        "saveTemplate": "Save as template",
+        "transfer": "Transfer ownership",
+        "move": "Move to another workspace"
+      },
+      "sections": {
+        "customize": "Customize",
+        "manage": "Manage",
+        "admin": "Board admin"
+      },
+      "background": {
+        "title": "Change background",
+        "description": "Pick a color or a photo for this board.",
+        "colors": "Colors",
+        "gradients": "Gradients",
+        "images": "Photos",
+        "remove": "Remove background",
+        "updated": "Background updated",
+        "removed": "Background removed",
+        "failed": "Could not update the background",
+        "current": "Selected",
+        "names": {
+          "paper": "Paper",
+          "sage": "Sage",
+          "mist": "Mist",
+          "teal": "Teal",
+          "deepTeal": "Deep teal",
+          "moss": "Moss",
+          "sand": "Sand",
+          "clay": "Clay",
+          "slate": "Slate",
+          "ink": "Ink",
+          "lagoon": "Lagoon",
+          "meadow": "Meadow",
+          "dune": "Dune",
+          "dusk": "Dusk",
+          "ember": "Ember",
+          "fog": "Fog",
+          "paperGrid": "Paper grid",
+          "tealDots": "Teal dots",
+          "contour": "Contour",
+          "duskWaves": "Dusk waves",
+          "shore": "Ocean",
+          "forest": "Rainforest",
+          "peaks": "Yosemite",
+          "lake": "Moraine Lake",
+          "mistHills": "Foggy forest",
+          "dunes": "Desert dunes",
+          "canyon": "Antelope Canyon",
+          "rim": "Grand Canyon",
+          "autumn": "Autumn woods",
+          "lavender": "Lavender field",
+          "night": "Milky Way",
+          "aurora": "Northern lights"
+        }
+      },
+      "labels": {
+        "title": "Labels",
+        "description": "Rename, recolor or delete labels used on this board.",
+        "empty": "No labels yet.",
+        "new": "Create a label",
+        "namePlaceholder": "Label name",
+        "color": "Color",
+        "create": "Create",
+        "save": "Save",
+        "created": "Label created",
+        "updated": "Label updated",
+        "deleted": "Label deleted",
+        "failed": "Could not save the label",
+        "deleteTitle": "Delete this label?",
+        "deleteDescription": "It will be removed from every card on the board."
+      },
+      "archived": {
+        "title": "Archived items",
+        "description": "Restore cards and lists you archived earlier.",
+        "cards": "Cards",
+        "columns": "Lists",
+        "emptyCards": "No archived cards.",
+        "emptyColumns": "No archived lists.",
+        "restore": "Restore",
+        "cardRestored": "Card restored",
+        "columnRestored": "List restored",
+        "failed": "Could not restore the item",
+        "loadFailed": "Could not load archived items",
+        "inList": "in {list}"
+      },
+      "powerUps": {
+        "title": "Power-Ups",
+        "description": "Add optional capabilities to this board.",
+        "empty": "No Power-Ups are available yet.",
+        "add": "Add",
+        "remove": "Remove",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "added": "Power-Up added",
+        "removed": "Power-Up removed",
+        "toggled": "Power-Up updated",
+        "failed": "Could not update the Power-Up",
+        "loadFailed": "Could not load Power-Ups",
+        "names": {
+          "customFields": "Custom Fields",
+          "map": "Map",
+          "stickers": "Stickers",
+          "dashboard": "Dashboard",
+          "github": "GitHub",
+          "calendar": "Calendar",
+          "timeline": "Timeline",
+          "timeTracking": "Time tracking",
+          "dependencies": "Dependencies",
+          "suggestNext": "What to do next",
+          "nlSearch": "Search in plain language"
+        },
+        "descriptions": {
+          "customFields": "Add text, number, date, checkbox and dropdown fields to cards.",
+          "map": "Pin cards to a location and view them on a map.",
+          "stickers": "Decorate cards with reaction, status, priority, review, and launch stickers.",
+          "dashboard": "Charts of cards per list, label, member and due date.",
+          "github": "Link issues and pull requests to cards, and open an issue from a card.",
+          "calendar": "See cards that have a due date on a calendar.",
+          "timeline": "Lay cards out by start date and due date.",
+          "timeTracking": "Start a timer on a card and keep the time you spend.",
+          "dependencies": "Mark which cards block other cards.",
+          "suggestNext": "Suggest the next cards to work on. Shows on Home.",
+          "nlSearch": "Find cards by describing them. Type ? in search."
+        }
+      },
+      "settings": {
+        "title": "Board settings",
+        "description": "Control how cards look on this board.",
+        "showLabelText": "Show label text on cards",
+        "showLabelTextHelp": "Display label names instead of colored dots.",
+        "coverSize": "Card covers",
+        "coverNormal": "Normal",
+        "coverFull": "Full-size",
+        "saved": "Settings saved",
+        "failed": "Could not save settings"
+      },
+      "butler": {
+        "hint": "Rules, card buttons and scheduled commands."
+      }
     }
   },
   "card": {
+    "customFields": "Custom fields",
+    "noCustomFields": "No custom fields on this board yet.",
+    "customFieldPick": "Select…",
+    "customFieldNone": "None",
+    "failedSaveCustomField": "Could not save custom field",
+    "location": "Location",
+    "locationName": "Place name",
+    "locationLat": "Latitude",
+    "locationLng": "Longitude",
+    "locationSave": "Save location",
+    "locationClear": "Clear",
+    "locationSaved": "Location saved",
+    "locationInvalid": "Enter a valid latitude (-90 to 90) and longitude (-180 to 180), or leave both empty.",
+    "stickers": "Stickers",
+    "noStickerPacks": "No sticker packs yet.",
+    "stickerPacks": {
+      "reactions": "Reactions",
+      "status": "Status",
+      "priority": "Priority",
+      "review": "Review",
+      "launch": "Launch"
+    },
+    "loadingStickers": "Loading stickers…",
+    "addSticker": "Add sticker {name}",
+    "removeSticker": "Remove sticker {name}",
+    "failedPlaceSticker": "Could not add sticker",
+    "failedRemoveSticker": "Could not remove sticker",
+    "completedOn": "Completed {date}",
     "details": "Card details",
     "titlePlaceholder": "Card title",
     "labels": "Labels",
@@ -1295,8 +1657,7 @@
     "priorityMedium": "Medium",
     "priorityHigh": "High",
     "priorityUrgent": "Urgent",
-    "blocked": "Blocked",
-    "github": "GitHub"
+    "blocked": "Blocked"
   },
   "validators": {
     "passwordMin": "Password must be at least 8 characters",
